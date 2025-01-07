@@ -1,0 +1,13 @@
+{
+  "tasks": {
+    "throttler:redis": "deno run -A ./throttler.redis/run.ts",
+    "throttler:memory": "deno run -A ./throttler.memory/run.ts",
+    "throttler:hybrid": "deno run -A ./throttler.hybrid/run.ts"
+  },
+  "imports": {
+    "ioredis": "npm:ioredis@^5.3.2",
+    "moment": "https://deno.land/x/momentjs@2.29.1-deno/mod.ts",
+    "axios": "npm:axios@1.7.5",
+    "uuid": "npm:uuid@^10.0.0"
+  }
+}

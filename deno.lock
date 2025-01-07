@@ -1,0 +1,144 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:axios@1.7.5": "npm:axios@1.7.5",
+      "npm:ioredis@^5.3.2": "npm:ioredis@5.4.2",
+      "npm:redlock": "npm:redlock@5.0.0-beta.2",
+      "npm:uuid@^10.0.0": "npm:uuid@10.0.0"
+    },
+    "npm": {
+      "@ioredis/commands@1.2.0": {
+        "integrity": "sha512-Sx1pU8EM64o2BrqNpEO1CNLtKQwyhuXuqyfH7oGKCk+1a33d2r5saW8zNwm3j6BTExtjrv2BxTgzzkMwts6vGg==",
+        "dependencies": {}
+      },
+      "asynckit@0.4.0": {
+        "integrity": "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==",
+        "dependencies": {}
+      },
+      "axios@1.7.5": {
+        "integrity": "sha512-fZu86yCo+svH3uqJ/yTdQ0QHpQu5oL+/QE+QPSv6BZSkDAoky9vytxp7u5qk83OJFS3kEBcesWni9WTZAv3tSw==",
+        "dependencies": {
+          "follow-redirects": "follow-redirects@1.15.9",
+          "form-data": "form-data@4.0.1",
+          "proxy-from-env": "proxy-from-env@1.1.0"
+        }
+      },
+      "cluster-key-slot@1.1.2": {
+        "integrity": "sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==",
+        "dependencies": {}
+      },
+      "combined-stream@1.0.8": {
+        "integrity": "sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==",
+        "dependencies": {
+          "delayed-stream": "delayed-stream@1.0.0"
+        }
+      },
+      "debug@4.4.0": {
+        "integrity": "sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==",
+        "dependencies": {
+          "ms": "ms@2.1.3"
+        }
+      },
+      "delayed-stream@1.0.0": {
+        "integrity": "sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==",
+        "dependencies": {}
+      },
+      "denque@2.1.0": {
+        "integrity": "sha512-HVQE3AAb/pxF8fQAoiqpvg9i3evqug3hoiwakOyZAwJm+6vZehbkYXZ0l4JxS+I3QxM97v5aaRNhj8v5oBhekw==",
+        "dependencies": {}
+      },
+      "follow-redirects@1.15.9": {
+        "integrity": "sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==",
+        "dependencies": {}
+      },
+      "form-data@4.0.1": {
+        "integrity": "sha512-tzN8e4TX8+kkxGPK8D5u0FNmjPUjw3lwC9lSLxxoB/+GtsJG91CO8bSWy73APlgAZzZbXEYZJuxjkHH2w+Ezhw==",
+        "dependencies": {
+          "asynckit": "asynckit@0.4.0",
+          "combined-stream": "combined-stream@1.0.8",
+          "mime-types": "mime-types@2.1.35"
+        }
+      },
+      "ioredis@5.4.2": {
+        "integrity": "sha512-0SZXGNGZ+WzISQ67QDyZ2x0+wVxjjUndtD8oSeik/4ajifeiRufed8fCb8QW8VMyi4MXcS+UO1k/0NGhvq1PAg==",
+        "dependencies": {
+          "@ioredis/commands": "@ioredis/commands@1.2.0",
+          "cluster-key-slot": "cluster-key-slot@1.1.2",
+          "debug": "debug@4.4.0",
+          "denque": "denque@2.1.0",
+          "lodash.defaults": "lodash.defaults@4.2.0",
+          "lodash.isarguments": "lodash.isarguments@3.1.0",
+          "redis-errors": "redis-errors@1.2.0",
+          "redis-parser": "redis-parser@3.0.0",
+          "standard-as-callback": "standard-as-callback@2.1.0"
+        }
+      },
+      "lodash.defaults@4.2.0": {
+        "integrity": "sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==",
+        "dependencies": {}
+      },
+      "lodash.isarguments@3.1.0": {
+        "integrity": "sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==",
+        "dependencies": {}
+      },
+      "mime-db@1.52.0": {
+        "integrity": "sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==",
+        "dependencies": {}
+      },
+      "mime-types@2.1.35": {
+        "integrity": "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==",
+        "dependencies": {
+          "mime-db": "mime-db@1.52.0"
+        }
+      },
+      "ms@2.1.3": {
+        "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+        "dependencies": {}
+      },
+      "node-abort-controller@3.1.1": {
+        "integrity": "sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==",
+        "dependencies": {}
+      },
+      "proxy-from-env@1.1.0": {
+        "integrity": "sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==",
+        "dependencies": {}
+      },
+      "redis-errors@1.2.0": {
+        "integrity": "sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==",
+        "dependencies": {}
+      },
+      "redis-parser@3.0.0": {
+        "integrity": "sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==",
+        "dependencies": {
+          "redis-errors": "redis-errors@1.2.0"
+        }
+      },
+      "redlock@5.0.0-beta.2": {
+        "integrity": "sha512-2RDWXg5jgRptDrB1w9O/JgSZC0j7y4SlaXnor93H/UJm/QyDiFgBKNtrh0TI6oCXqYSaSoXxFh6Sd3VtYfhRXw==",
+        "dependencies": {
+          "node-abort-controller": "node-abort-controller@3.1.1"
+        }
+      },
+      "standard-as-callback@2.1.0": {
+        "integrity": "sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==",
+        "dependencies": {}
+      },
+      "uuid@10.0.0": {
+        "integrity": "sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==",
+        "dependencies": {}
+      }
+    }
+  },
+  "remote": {
+    "https://deno.land/x/momentjs@2.29.1-deno/mod.ts": "f0c8542988b812d2aeaabe4fe3d86e7638ba6dd469ac9dd252eb2d9a765b8b49",
+    "https://deno.land/x/momentjs@2.29.1-deno/node_modules/moment/moment.js": "7ba0da6b25146fe95a948b47ec8a7707b4bcf6a87390d4b655a0663e107f7845"
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:axios@1.7.5",
+      "npm:ioredis@^5.3.2",
+      "npm:uuid@^10.0.0"
+    ]
+  }
+}

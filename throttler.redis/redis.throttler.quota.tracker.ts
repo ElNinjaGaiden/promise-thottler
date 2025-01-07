@@ -8,18 +8,13 @@ export class RedisThrottlerQuotaTracker
   set = async (
     key: string,
     value: string | number,
-    minutesTtl?: number,
   ): Promise<void> => {
-    if (minutesTtl) {
-      await redis.set(
-        key,
-        value,
-        "EX",
-        redisThrottlerQuotaTrackerMinutesTtl * 60,
-      );
-    } else {
-      await redis.set(key, value);
-    }
+    await redis.set(
+      key,
+      value,
+      "EX",
+      redisThrottlerQuotaTrackerMinutesTtl * 60,
+    );
   };
 
   get = async (key: string): Promise<number> => {

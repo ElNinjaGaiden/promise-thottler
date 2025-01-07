@@ -13,7 +13,6 @@ import moment from "moment";
 export class PromiseThrottler implements IPromiseThrottler {
   // deno-lint-ignore no-explicit-any
   static operations: Array<PromiseThrottlerOperation<any, any>> = [];
-  static throttlerQuotaTrackerCountersMinutesTtl: number = 60;
 
   constructor(
     readonly options: PromiseThrottlerOptions,
@@ -72,7 +71,6 @@ export class PromiseThrottler implements IPromiseThrottler {
           await this.throttlerQuotaTracker.set(
             currentCounterKey,
             currentMinuteOperationsCounter + 1,
-            PromiseThrottler.throttlerQuotaTrackerCountersMinutesTtl,
           );
           await lock.release();
           resolve(returnValue);

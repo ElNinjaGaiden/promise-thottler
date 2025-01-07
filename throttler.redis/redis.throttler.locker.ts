@@ -1,5 +1,8 @@
 import Redlock from "npm:redlock";
-import { IPromiseThrottlerLock, IPromiseThrottlerLocker } from "../promise.throttler.types.ts";
+import {
+  IPromiseThrottlerLock,
+  IPromiseThrottlerLocker,
+} from "../promise.throttler.types.ts";
 import redis from "../redis.ts";
 
 const redlock = new Redlock([redis], {

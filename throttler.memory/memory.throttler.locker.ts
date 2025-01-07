@@ -1,4 +1,7 @@
-import { IPromiseThrottlerLock, IPromiseThrottlerLocker } from "../promise.throttler.types.ts";
+import {
+  IPromiseThrottlerLock,
+  IPromiseThrottlerLocker,
+} from "../promise.throttler.types.ts";
 import { v4 as uuidv4 } from "uuid";
 
 const lockers: Record<string, MemoryThrottlerLocker> = {};
@@ -12,7 +15,9 @@ export const getMemoryLocker = (lockKey: string) => {
 
 interface Acquire {
   id: string;
-  resolve: (value: MemoryThrottlerLock | PromiseLike<MemoryThrottlerLock>) => void;
+  resolve: (
+    value: MemoryThrottlerLock | PromiseLike<MemoryThrottlerLock>,
+  ) => void;
   lock: MemoryThrottlerLock;
 }
 
@@ -41,7 +46,7 @@ export class MemoryThrottlerLocker implements IPromiseThrottlerLocker {
         MemoryThrottlerLocker.locked = true;
       }
     }
-  }
+  };
 
   acquire = (lockKey: string): Promise<IPromiseThrottlerLock> => {
     const memoryThrottlerLocker = getMemoryLocker(lockKey);

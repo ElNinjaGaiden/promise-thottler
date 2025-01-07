@@ -1,14 +1,22 @@
 import { IPromiseThrottlerQuotaTracker } from "../promise.throttler.types.ts";
 import redis from "../redis.ts";
 
-export class RedisThrottlerQuotaTracker implements IPromiseThrottlerQuotaTracker {
+const redisThrottlerQuotaTrackerMinutesTtl: number = 60;
+
+export class RedisThrottlerQuotaTracker
+  implements IPromiseThrottlerQuotaTracker {
   set = async (
     key: string,
     value: string | number,
     minutesTtl?: number,
   ): Promise<void> => {
     if (minutesTtl) {
-      await redis.set(key, value, "EX", minutesTtl * 60);
+      await redis.set(
+        key,
+        value,
+        "EX",
+        redisThrottlerQuotaTrackerMinutesTtl * 60,
+      );
     } else {
       await redis.set(key, value);
     }

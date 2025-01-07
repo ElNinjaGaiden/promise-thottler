@@ -9,14 +9,15 @@ const getQuotaTracker = (lockKey: string) => {
   return quotaTrackers[lockKey];
 };
 
-export class MemoryThrottlerQuotaTracker implements IPromiseThrottlerQuotaTracker {
-  set = (key: string, value: string | number, _minutesTtl?: number): Promise<void> => {
+export class MemoryThrottlerQuotaTracker
+  implements IPromiseThrottlerQuotaTracker {
+  set = (key: string, value: string | number): Promise<void> => {
     const quotaTracker = getQuotaTracker(key);
     quotaTracker.current = parseInt(value.toString());
     return Promise.resolve();
-  }
+  };
 
   get = (key: string): Promise<number> => {
     return Promise.resolve(getQuotaTracker(key).current);
-  }
+  };
 }

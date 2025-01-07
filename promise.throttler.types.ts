@@ -45,7 +45,6 @@ export interface IPromiseThrottlerQuotaTracker {
   set: (
     key: string,
     value: string | number,
-    minutesTtl?: number,
   ) => Promise<void>;
   get: (key: string) => Promise<number>;
 }

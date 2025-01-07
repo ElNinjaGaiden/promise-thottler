@@ -2,7 +2,7 @@ import { PromiseThrottlerOptions } from "./promise.throttler.types.ts";
 
 export const throttlerConfig: PromiseThrottlerOptions = {
   atmsKey: "MEDI_ROUTES",
-  operationsPerMinute: 25,
+  operationsPerMinute: 10,
   retries: 3,
 };
 

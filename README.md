@@ -15,3 +15,10 @@
 
 ## Configuration
 - You can modify the quota config to use on each run by modifying values in the [throttler.config.ts file](https://github.com/ElNinjaGaiden/promise-thottler/blob/main/throttler.config.ts). The two most important properties are `operationsPerMinute` and `NUMBER_OF_OPERATIONS`.
+
+### Example
+- 4 processors running 15 operations "at the same time" with a quota of 30 operations per minute:
+- Advice: Play it at 2.x playback speed
+
+https://github.com/user-attachments/assets/4936c396-dd36-4b59-8d94-cb1ecbe8781b
+

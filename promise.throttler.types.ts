@@ -1,14 +1,13 @@
 import moment from "moment";
 
 export interface PromiseThrottlerOptions {
-  atmsKey: string;
-  vehicleCompanyId?: number;
   operationsPerMinute: number;
   retries: number;
 }
 
 export interface PromiseThrottlerOperationOptions<TError extends Error> {
   id?: string;
+  retries?: number;
   onOperationRescheduled?: (
     scheduleTime: moment.Moment,
     operationId?: string,
@@ -37,8 +36,6 @@ export interface IPromiseThrottler {
     operation: () => Promise<T>,
     options?: PromiseThrottlerOperationOptions<TError>,
   ) => Promise<T>;
-  getLockKey: () => string;
-  finish: () => void;
 }
 
 export interface IPromiseThrottlerQuotaTracker {
@@ -49,16 +46,17 @@ export interface IPromiseThrottlerQuotaTracker {
   get: (key: string) => Promise<number>;
 }
 
+export interface IPromiseThrottlerKeysGenerator {
+  getLockKey: () => string;
+  getCounterKey: (moment: moment.Moment) => string;
+}
+
 export interface IPromiseThrottlerLock {
   release: () => Promise<void>;
 }
 
-export interface IPromiseThrottlerLocker {
+export interface IPromiseThrottlerLocksGenerator {
   acquire: (lockKey: string) => Promise<IPromiseThrottlerLock>;
-}
-
-export interface IPromiseThrottlerFinisher {
-  finish: (lockKey: string) => void;
 }
 
 export class PromiseThrottlerRetriesExaustedError extends Error {

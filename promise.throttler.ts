@@ -1,7 +1,7 @@
 import {
   IPromiseThrottler,
-  IPromiseThrottlerFinisher,
-  IPromiseThrottlerLocker,
+  IPromiseThrottlerKeysGenerator,
+  IPromiseThrottlerLocksGenerator,
   IPromiseThrottlerQuotaTracker,
   PromiseThrottlerOperation,
   PromiseThrottlerOperationOptions,
@@ -15,25 +15,13 @@ export class PromiseThrottler implements IPromiseThrottler {
   static operations: Array<PromiseThrottlerOperation<any, any>> = [];
 
   constructor(
-    readonly options: PromiseThrottlerOptions,
-    readonly throttlerLocker: IPromiseThrottlerLocker,
+    readonly throttlingOptions: PromiseThrottlerOptions,
+    readonly throttlerKeysGenerator: IPromiseThrottlerKeysGenerator,
+    readonly throttlerLocksGenerator: IPromiseThrottlerLocksGenerator,
     readonly throttlerQuotaTracker: IPromiseThrottlerQuotaTracker,
-    readonly throttlerFinisher: IPromiseThrottlerFinisher,
   ) {}
 
-  getLockKey = () =>
-    `throttler:${this.options.atmsKey}${
-      this.options.vehicleCompanyId ? `:${this.options.vehicleCompanyId}` : ""
-    }:lock`;
-
-  private getCurrentMinuteOperationsCounterKey = (
-    moment: moment.Moment,
-  ): string => {
-    const currentHourMinute = moment.format("HH-mm");
-    return `throttler:${this.options.atmsKey}${
-      this.options.vehicleCompanyId ? `:${this.options.vehicleCompanyId}` : ""
-    }:${currentHourMinute}`;
-  };
+  getLockKey = () => this.throttlerKeysGenerator.getLockKey();
 
   add = <T, TError extends Error>(
     operation: () => Promise<T>,
@@ -55,16 +43,21 @@ export class PromiseThrottler implements IPromiseThrottler {
   private doDequeue = async () => {
     const candidate = PromiseThrottler.operations.shift();
     if (candidate) {
-      const lock = await this.throttlerLocker.acquire(this.getLockKey());
+      const lock = await this.throttlerLocksGenerator.acquire(
+        this.getLockKey(),
+      );
       const executionMoment = moment();
-      const currentCounterKey = this.getCurrentMinuteOperationsCounterKey(
+      const currentCounterKey = this.throttlerKeysGenerator.getCounterKey(
         executionMoment,
       );
       const currentMinuteOperationsCounter = await this.throttlerQuotaTracker
         .get(currentCounterKey);
       const { operation, resolve, reject, options: operationOptions } =
         candidate;
-      if (currentMinuteOperationsCounter < this.options.operationsPerMinute) {
+      if (
+        currentMinuteOperationsCounter <
+          this.throttlingOptions.operationsPerMinute
+      ) {
         // Rate limit has not been executed, we can proceed
         try {
           const returnValue = await operation();
@@ -106,9 +99,10 @@ export class PromiseThrottler implements IPromiseThrottler {
     previousAttemptMoment: moment.Moment,
     executionMoment: moment.Moment,
   ) => {
-    // Note: "this.options.retries + 1" to actually make the initial attempt and then the N available retries
+    // Note: "retries + 1" to actually make the initial attempt and then the N available retries
     const { currentRetryAttempt, options: operationOptions } = operation;
-    if (currentRetryAttempt <= this.options.retries + 1) {
+    const retries = operationOptions?.retries ?? this.throttlingOptions.retries;
+    if (currentRetryAttempt <= retries + 1) {
       if (operationOptions?.onOperationRescheduled) {
         operationOptions.onOperationRescheduled(
           executionMoment,
@@ -124,13 +118,9 @@ export class PromiseThrottler implements IPromiseThrottler {
         new PromiseThrottlerRetriesExaustedError(
           `Operation ${
             operationOptions?.id ? `${operationOptions.id} ` : ""
-          } has been aborted since it did not complete succesfully after ${this.options.retries} retries`,
+          } has been aborted since it did not complete succesfully after ${retries} retries`,
         ),
       );
     }
-  };
-
-  finish = () => {
-    this.throttlerFinisher.finish(this.getLockKey());
   };
 }

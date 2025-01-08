@@ -1,7 +1,7 @@
 import Redlock from "npm:redlock";
 import {
   IPromiseThrottlerLock,
-  IPromiseThrottlerLocker,
+  IPromiseThrottlerLocksGenerator,
 } from "../promise.throttler.types.ts";
 import redis from "../redis.ts";
 
@@ -13,7 +13,8 @@ const redlock = new Redlock([redis], {
   automaticExtensionThreshold: 500,
 });
 
-export class RedisThrottlerLocker implements IPromiseThrottlerLocker {
+export class RedisThrottlerLocksGenerator
+  implements IPromiseThrottlerLocksGenerator {
   acquire = async (lockKey: string): Promise<IPromiseThrottlerLock> => {
     const redisLock = await redlock.acquire([lockKey], 5000);
     const lock: IPromiseThrottlerLock = {

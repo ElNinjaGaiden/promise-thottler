@@ -2,6 +2,20 @@ import { IPromiseThrottler } from "./promise.throttler.types.ts";
 import moment from "moment";
 import { NUMBER_OF_OPERATIONS } from "./throttler.config.ts";
 import { AxiosError } from "axios";
+import redis from "./redis.ts";
+
+export const NETWORK_ERROR_CODES = [
+  "EPIPE",
+  "EPROTO",
+  "ETIMEDOUT",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ECONNRESET",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "ECONNREFUSED",
+  // "ERR_BAD_REQUEST",
+];
 
 export const test = async (throttler: IPromiseThrottler) => {
   const operation = (index: string) => {
@@ -12,7 +26,7 @@ export const test = async (throttler: IPromiseThrottler) => {
         );
         resolve(index);
         // reject('Dummy error');
-      }, 1000);
+      }, 500);
     });
   };
 
@@ -32,6 +46,15 @@ export const test = async (throttler: IPromiseThrottler) => {
         onOperationFailed: (error, id) => {
           console.log(`Operation ${id} failed. Error: ${error.message}`);
         },
+        shouldRetry: (e) => {
+          const errorCode = e?.code;
+          if (errorCode && NETWORK_ERROR_CODES.includes(errorCode)) {
+            return true; // network errors
+          }
+          const status = e?.response?.status;
+          if (!status || status <= 499) return false; // data errors
+          return true;
+        },
       }),
     );
   }
@@ -42,5 +65,6 @@ export const test = async (throttler: IPromiseThrottler) => {
   console.log(
     `All operations completed, fulfilled: ${fulfilled.length}, rejected: ${rejected.length}`,
   );
-  throttler.finish();
+  redis.disconnect();
+  Deno.exit(0);
 };

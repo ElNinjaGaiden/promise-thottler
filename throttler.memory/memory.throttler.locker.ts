@@ -1,16 +1,16 @@
 import {
   IPromiseThrottlerLock,
-  IPromiseThrottlerLocker,
+  IPromiseThrottlerLocksGenerator,
 } from "../promise.throttler.types.ts";
 import { v4 as uuidv4 } from "uuid";
 
-const lockers: Record<string, MemoryThrottlerLocker> = {};
+const locksGenerators: Record<string, MemoryThrottlerLocksGenerator> = {};
 
-export const getMemoryLocker = (lockKey: string) => {
-  if (!lockers[lockKey]) {
-    lockers[lockKey] = new MemoryThrottlerLocker();
+export const getMemoryLocksGenerator = (lockKey: string) => {
+  if (!locksGenerators[lockKey]) {
+    locksGenerators[lockKey] = new MemoryThrottlerLocksGenerator();
   }
-  return lockers[lockKey];
+  return locksGenerators[lockKey];
 };
 
 interface Acquire {
@@ -23,12 +23,13 @@ interface Acquire {
 
 class MemoryThrottlerLock implements IPromiseThrottlerLock {
   release = async (): Promise<void> => {
-    MemoryThrottlerLocker.locked = false;
+    MemoryThrottlerLocksGenerator.locked = false;
     return await Promise.resolve();
   };
 }
 
-export class MemoryThrottlerLocker implements IPromiseThrottlerLocker {
+export class MemoryThrottlerLocksGenerator
+  implements IPromiseThrottlerLocksGenerator {
   static locked: boolean = false;
   public acquires: Array<Acquire> = [];
   public interval: number | null = null;
@@ -38,33 +39,25 @@ export class MemoryThrottlerLocker implements IPromiseThrottlerLocker {
   }
 
   private checkForAcquires = () => {
-    if (!MemoryThrottlerLocker.locked) {
+    if (!MemoryThrottlerLocksGenerator.locked) {
       const acquire = this.acquires.shift();
       if (acquire) {
         this.acquires = this.acquires.filter((a) => a.id !== acquire.id);
         acquire.resolve(acquire.lock);
-        MemoryThrottlerLocker.locked = true;
+        MemoryThrottlerLocksGenerator.locked = true;
       }
     }
   };
 
   acquire = (lockKey: string): Promise<IPromiseThrottlerLock> => {
-    const memoryThrottlerLocker = getMemoryLocker(lockKey);
+    const memoryThrottlerLocksGenerator = getMemoryLocksGenerator(lockKey);
     const memoryThrottlerLock = new MemoryThrottlerLock();
     return new Promise((resolve) => {
-      memoryThrottlerLocker.acquires.push({
+      memoryThrottlerLocksGenerator.acquires.push({
         id: uuidv4(),
         lock: memoryThrottlerLock,
         resolve,
       });
     });
-  };
-
-  finish = (lockKey: string) => {
-    const locker = getMemoryLocker(lockKey);
-    if (locker) {
-      if (locker.interval) clearInterval(locker.interval);
-      delete lockers[lockKey];
-    }
   };
 }

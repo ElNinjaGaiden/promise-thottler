@@ -4,14 +4,14 @@ import {
   vehicleCompanyAtmsThrottlerKeysGeneratorInput,
 } from "../throttler.config.ts";
 import { PromiseThrottler } from "../promise.throttler.ts";
-import { MemoryThrottlerLocksGenerator } from "../throttler.memory/memory.throttler.locker.ts";
 import { RedisThrottlerQuotaTracker } from "../throttler.redis/redis.throttler.quota.tracker.ts";
+import { InMemoryThrottlerLocksGenerator } from "../throttler.memory/memory.throttler.locker.ts";
 
 export const throttler = new PromiseThrottler(
   throttlerConfig,
   new VehicleCompanyAtmsThrottlerKeysGenerator(
     vehicleCompanyAtmsThrottlerKeysGeneratorInput,
   ),
-  new MemoryThrottlerLocksGenerator(),
+  new InMemoryThrottlerLocksGenerator(),
   new RedisThrottlerQuotaTracker(),
 );

@@ -2,7 +2,8 @@
   "tasks": {
     "throttler:redis": "deno run -A ./throttler.redis/run.ts",
     "throttler:memory": "deno run -A ./throttler.memory/run.ts",
-    "throttler:hybrid": "deno run -A ./throttler.hybrid/run.ts"
+    "throttler:hybrid": "deno run -A ./throttler.hybrid/run.ts",
+    "throttler:scalabilityAware": "deno run -A ./throttler.scalabilityAware/run.ts"
   },
   "imports": {
     "ioredis": "npm:ioredis@^5.3.2",

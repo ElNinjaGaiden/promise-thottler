@@ -9,7 +9,7 @@ const getQuotaTracker = (lockKey: string) => {
   return quotaTrackers[lockKey];
 };
 
-export class MemoryThrottlerQuotaTracker
+export class InMemoryThrottlerQuotaTracker
   implements IPromiseThrottlerQuotaTracker {
   set = (key: string, value: string | number): Promise<void> => {
     const quotaTracker = getQuotaTracker(key);

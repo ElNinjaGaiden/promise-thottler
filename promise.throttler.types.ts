@@ -5,6 +5,12 @@ export interface PromiseThrottlerOptions {
   retries: number;
 }
 
+export interface ScalabilityAwarePromiseThrottlerOptions
+  extends PromiseThrottlerOptions {
+  processors?: number;
+  autoScaleEnabled: boolean;
+}
+
 export interface PromiseThrottlerOperationOptions<TError extends Error> {
   id?: string;
   retries?: number;

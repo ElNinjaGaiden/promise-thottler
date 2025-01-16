@@ -1,4 +1,4 @@
-import { IPromiseThrottlerQuotaTracker } from "../promise.throttler.types.ts";
+import { IThrottlingQuotaTracker } from "../promise.throttler.types.ts";
 
 const quotaTrackers: Record<string, { current: number }> = {};
 
@@ -9,8 +9,8 @@ const getQuotaTracker = (lockKey: string) => {
   return quotaTrackers[lockKey];
 };
 
-export class InMemoryThrottlerQuotaTracker
-  implements IPromiseThrottlerQuotaTracker {
+export class InMemoryThrottlingQuotaTracker
+  implements IThrottlingQuotaTracker {
   set = (key: string, value: string | number): Promise<void> => {
     const quotaTracker = getQuotaTracker(key);
     quotaTracker.current = parseInt(value.toString());

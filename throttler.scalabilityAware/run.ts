@@ -1,4 +1,4 @@
 import { test } from "../test.ts";
-import { throttler as scalabilityAwareThrottler } from "./scalabilityAware.throttler.ts";
+import { getThrottlerMechanismTest } from "./scalabilityAware.throttlingMechanism.ts";
 
-await test(scalabilityAwareThrottler);
+await test(getThrottlerMechanismTest());

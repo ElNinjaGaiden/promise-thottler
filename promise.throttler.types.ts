@@ -1,25 +1,30 @@
 import moment from "moment";
 
-export interface PromiseThrottlerOptions {
+export interface EndpointsThrottlingConfig {
+  urlSpecification: string;
+  urlRegexExpression: string;
+  urlRegexFlags: string;
+  matchingPrecedence: number;
   operationsPerMinute: number;
   retries: number;
 }
 
-export interface ScalabilityAwarePromiseThrottlerOptions
-  extends PromiseThrottlerOptions {
+export interface ScalabilityAwareApiThrottlingConfig {
   processors?: number;
   autoScaleEnabled: boolean;
 }
 
-export interface PromiseThrottlerOperationOptions<TError extends Error> {
+export interface ThrottlingOperationOptions<TError extends Error> {
   id?: string;
   retries?: number;
   onOperationRescheduled?: (
     scheduleTime: moment.Moment,
+    url: string,
     operationId?: string,
   ) => Promise<void> | void;
   onOperationFailed?: (
     error: TError,
+    url: string,
     operationId?: string,
   ) => Promise<void> | void;
   shouldRetry?: (
@@ -28,23 +33,34 @@ export interface PromiseThrottlerOperationOptions<TError extends Error> {
   ) => Promise<boolean> | boolean;
 }
 
-export interface PromiseThrottlerOperation<T, TError extends Error> {
-  operation: () => Promise<T>;
+export interface ThrottlingOperation<T, TError extends Error> {
+  url: string;
+  operation: (url: string) => Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
   // deno-lint-ignore no-explicit-any
   reject: (reason?: any) => void;
   currentRetryAttempt: number;
-  options?: PromiseThrottlerOperationOptions<TError>;
+  options?: ThrottlingOperationOptions<TError>;
 }
 
-export interface IPromiseThrottler {
+export interface IEndpointsThrottler {
+  get throttlingOptions(): EndpointsThrottlingConfig;
   add: <T, TError extends Error>(
-    operation: () => Promise<T>,
-    options?: PromiseThrottlerOperationOptions<TError>,
+    url: string,
+    operation: (url: string) => Promise<T>,
+    options?: ThrottlingOperationOptions<TError>,
   ) => Promise<T>;
 }
 
-export interface IPromiseThrottlerQuotaTracker {
+export interface IApiThrottler {
+  add: <T, TError extends Error>(
+    url: string,
+    operation: (url: string) => Promise<T>,
+    options?: ThrottlingOperationOptions<TError>,
+  ) => Promise<T>;
+}
+
+export interface IThrottlingQuotaTracker {
   set: (
     key: string,
     value: string | number,
@@ -52,18 +68,23 @@ export interface IPromiseThrottlerQuotaTracker {
   get: (key: string) => Promise<number>;
 }
 
-export interface IPromiseThrottlerKeysGenerator {
-  getLockKey: () => string;
-  getCounterKey: (moment: moment.Moment) => string;
+// deno-lint-ignore no-empty-interface
+export interface IThrottlingKeysGeneratorInput {}
+
+export interface IThrottlingKeysGenerator<
+  T extends IThrottlingKeysGeneratorInput,
+> {
+  getLockKey: (input: T, throttlerConfig: EndpointsThrottlingConfig) => string;
+  getCounterKey: (input: T, throttlerConfig: EndpointsThrottlingConfig, moment: moment.Moment) => string;
 }
 
-export interface IPromiseThrottlerLock {
+export interface IThrottlingLock {
   release: () => Promise<void>;
 }
 
-export interface IPromiseThrottlerLocksGenerator {
-  acquire: (lockKey: string) => Promise<IPromiseThrottlerLock>;
+export interface IThrottlingLocksGenerator {
+  acquire: (lockKey: string) => Promise<IThrottlingLock>;
 }
 
-export class PromiseThrottlerRetriesExaustedError extends Error {
+export class ThrottlingRetriesExaustedError extends Error {
 }

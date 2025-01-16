@@ -1,34 +1,49 @@
 import {
-  IPromiseThrottler,
-  IPromiseThrottlerKeysGenerator,
-  IPromiseThrottlerLocksGenerator,
-  IPromiseThrottlerQuotaTracker,
-  PromiseThrottlerOperation,
-  PromiseThrottlerOperationOptions,
-  PromiseThrottlerOptions,
-  PromiseThrottlerRetriesExaustedError,
+  IEndpointsThrottler,
+  IThrottlingKeysGenerator,
+  IThrottlingKeysGeneratorInput,
+  IThrottlingLocksGenerator,
+  IThrottlingQuotaTracker,
+  ThrottlingOperation,
+  ThrottlingOperationOptions,
+  EndpointsThrottlingConfig,
+  ThrottlingRetriesExaustedError,
 } from "./promise.throttler.types.ts";
 import moment from "moment";
 
-export class PromiseThrottler implements IPromiseThrottler {
+export class EndpointsThrottler<
+  KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
+> implements IEndpointsThrottler {
+  // static operations: Array<ThrottlingOperation<any, any>> = [];
   // deno-lint-ignore no-explicit-any
-  static operations: Array<PromiseThrottlerOperation<any, any>> = [];
+  private operations: Array<ThrottlingOperation<any, any>> = [];
 
   constructor(
-    readonly throttlingOptions: PromiseThrottlerOptions,
-    readonly throttlerKeysGenerator: IPromiseThrottlerKeysGenerator,
-    readonly throttlerLocksGenerator: IPromiseThrottlerLocksGenerator,
-    readonly throttlerQuotaTracker: IPromiseThrottlerQuotaTracker,
+    readonly throttlingOptions: EndpointsThrottlingConfig,
+    readonly throttlingKeysGeneratorInput: KeysGeneratorInput,
+    readonly throttlingKeysGenerator: IThrottlingKeysGenerator<
+      KeysGeneratorInput
+    >,
+    readonly throttlingLocksGenerator: IThrottlingLocksGenerator,
+    readonly throttlingQuotaTracker: IThrottlingQuotaTracker,
   ) {}
 
-  getLockKey = () => this.throttlerKeysGenerator.getLockKey();
+  get urlRegexExpression(): string {
+    return this.throttlingOptions.urlRegexExpression;
+  }
+
+  get urlRegexFlags(): string {
+    return this.throttlingOptions.urlRegexFlags;
+  }
 
   add = <T, TError extends Error>(
-    operation: () => Promise<T>,
-    options?: PromiseThrottlerOperationOptions<TError>,
+    url: string,
+    operation: (url: string) => Promise<T>,
+    options?: ThrottlingOperationOptions<TError>,
   ): Promise<T> => {
     const p = new Promise<T>((resolve, reject) => {
-      PromiseThrottler.operations.push({
+      this.operations.push({
+        url,
         operation,
         resolve,
         reject,
@@ -41,18 +56,21 @@ export class PromiseThrottler implements IPromiseThrottler {
   };
 
   private doDequeue = async () => {
-    const candidate = PromiseThrottler.operations.shift();
+    const candidate = this.operations.shift();
     if (candidate) {
-      const lock = await this.throttlerLocksGenerator.acquire(
-        this.getLockKey(),
+      const lockKey = this.throttlingKeysGenerator.getLockKey(
+        this.throttlingKeysGeneratorInput, this.throttlingOptions
       );
+      const lock = await this.throttlingLocksGenerator.acquire(lockKey);
       const executionMoment = moment();
-      const currentCounterKey = this.throttlerKeysGenerator.getCounterKey(
+      const currentCounterKey = this.throttlingKeysGenerator.getCounterKey(
+        this.throttlingKeysGeneratorInput,
+        this.throttlingOptions,
         executionMoment,
       );
-      const currentMinuteOperationsCounter = await this.throttlerQuotaTracker
+      const currentMinuteOperationsCounter = await this.throttlingQuotaTracker
         .get(currentCounterKey);
-      const { operation, resolve, reject, options: operationOptions } =
+      const { url, operation, resolve, reject, options: operationOptions } =
         candidate;
       if (
         currentMinuteOperationsCounter <
@@ -60,8 +78,8 @@ export class PromiseThrottler implements IPromiseThrottler {
       ) {
         // Rate limit has not been executed, we can proceed
         try {
-          const returnValue = await operation();
-          await this.throttlerQuotaTracker.set(
+          const returnValue = await operation(url);
+          await this.throttlingQuotaTracker.set(
             currentCounterKey,
             currentMinuteOperationsCounter + 1,
           );
@@ -69,7 +87,7 @@ export class PromiseThrottler implements IPromiseThrottler {
           resolve(returnValue);
         } catch (error: unknown) {
           if (operationOptions?.onOperationFailed) {
-            operationOptions.onOperationFailed(error, operationOptions.id);
+            operationOptions.onOperationFailed(error, url, operationOptions.id);
           }
           // Check if the operation has to be retried
           const shouldRetry = operationOptions?.shouldRetry
@@ -95,27 +113,28 @@ export class PromiseThrottler implements IPromiseThrottler {
   };
 
   private tryEnqueueOperation = <T, TError extends Error>(
-    operation: PromiseThrottlerOperation<T, TError>,
+    operation: ThrottlingOperation<T, TError>,
     previousAttemptMoment: moment.Moment,
     executionMoment: moment.Moment,
   ) => {
     // Note: "retries + 1" to actually make the initial attempt and then the N available retries
-    const { currentRetryAttempt, options: operationOptions } = operation;
+    const { currentRetryAttempt, url, options: operationOptions } = operation;
     const retries = operationOptions?.retries ?? this.throttlingOptions.retries;
     if (currentRetryAttempt <= retries + 1) {
       if (operationOptions?.onOperationRescheduled) {
         operationOptions.onOperationRescheduled(
           executionMoment,
+          url,
           operationOptions.id,
         );
       }
       setTimeout(() => {
-        PromiseThrottler.operations.unshift(operation);
+        this.operations.unshift(operation);
         this.doDequeue();
       }, executionMoment.diff(previousAttemptMoment, "milliseconds"));
     } else {
       operation.reject(
-        new PromiseThrottlerRetriesExaustedError(
+        new ThrottlingRetriesExaustedError(
           `Operation ${
             operationOptions?.id ? `${operationOptions.id} ` : ""
           } has been aborted since it did not complete succesfully after ${retries} retries`,

@@ -1,10 +1,10 @@
-import { IPromiseThrottlerQuotaTracker } from "../promise.throttler.types.ts";
+import { IThrottlingQuotaTracker } from "../promise.throttler.types.ts";
 import redis from "../redis.ts";
 
 const redisThrottlerQuotaTrackerMinutesTtl: number = 60;
 
-export class RedisThrottlerQuotaTracker
-  implements IPromiseThrottlerQuotaTracker {
+export class RedisThrottlingQuotaTracker
+  implements IThrottlingQuotaTracker {
   set = async (
     key: string,
     value: string | number,

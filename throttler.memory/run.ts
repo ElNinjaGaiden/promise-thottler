@@ -1,4 +1,4 @@
 import { test } from "../test.ts";
-import { throttler as inMemoryThrottler } from "./memory.throttler.blocking.ts";
+import { getThrottlingMechanismTest } from "./memory.throttlingMechanism.ts";
 
-await test(inMemoryThrottler);
+await test(getThrottlingMechanismTest());

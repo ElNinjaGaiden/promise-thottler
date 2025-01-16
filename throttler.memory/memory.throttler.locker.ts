@@ -1,14 +1,14 @@
 import {
-  IPromiseThrottlerLock,
-  IPromiseThrottlerLocksGenerator,
+  IThrottlingLock,
+  IThrottlingLocksGenerator,
 } from "../promise.throttler.types.ts";
 import { v4 as uuidv4 } from "uuid";
 
-const locksGenerators: Record<string, InMemoryThrottlerLocksGenerator> = {};
+const locksGenerators: Record<string, InMemoryThrottlingLocksGenerator> = {};
 
 const getInMemoryLocksGenerator = (lockKey: string) => {
   if (!locksGenerators[lockKey]) {
-    locksGenerators[lockKey] = new InMemoryThrottlerLocksGenerator();
+    locksGenerators[lockKey] = new InMemoryThrottlingLocksGenerator();
   }
   return locksGenerators[lockKey];
 };
@@ -16,20 +16,20 @@ const getInMemoryLocksGenerator = (lockKey: string) => {
 interface Acquire {
   id: string;
   resolve: (
-    value: InMemoryThrottlerLock | PromiseLike<InMemoryThrottlerLock>,
+    value: InMemoryThrottlingLock | PromiseLike<InMemoryThrottlingLock>,
   ) => void;
-  lock: InMemoryThrottlerLock;
+  lock: InMemoryThrottlingLock;
 }
 
-class InMemoryThrottlerLock implements IPromiseThrottlerLock {
+class InMemoryThrottlingLock implements IThrottlingLock {
   release = async (): Promise<void> => {
-    InMemoryThrottlerLocksGenerator.locked = false;
+    InMemoryThrottlingLocksGenerator.locked = false;
     return await Promise.resolve();
   };
 }
 
-export class InMemoryThrottlerLocksGenerator
-  implements IPromiseThrottlerLocksGenerator {
+export class InMemoryThrottlingLocksGenerator
+  implements IThrottlingLocksGenerator {
   static locked: boolean = false;
   public acquires: Array<Acquire> = [];
   public interval: number | null = null;
@@ -39,19 +39,19 @@ export class InMemoryThrottlerLocksGenerator
   }
 
   private checkForAcquires = () => {
-    if (!InMemoryThrottlerLocksGenerator.locked) {
+    if (!InMemoryThrottlingLocksGenerator.locked) {
       const acquire = this.acquires.shift();
       if (acquire) {
         this.acquires = this.acquires.filter((a) => a.id !== acquire.id);
         acquire.resolve(acquire.lock);
-        InMemoryThrottlerLocksGenerator.locked = true;
+        InMemoryThrottlingLocksGenerator.locked = true;
       }
     }
   };
 
-  acquire = (lockKey: string): Promise<IPromiseThrottlerLock> => {
+  acquire = (lockKey: string): Promise<IThrottlingLock> => {
     const memoryThrottlerLocksGenerator = getInMemoryLocksGenerator(lockKey);
-    const memoryThrottlerLock = new InMemoryThrottlerLock();
+    const memoryThrottlerLock = new InMemoryThrottlingLock();
     return new Promise((resolve) => {
       memoryThrottlerLocksGenerator.acquires.push({
         id: uuidv4(),

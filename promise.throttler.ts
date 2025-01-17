@@ -1,4 +1,5 @@
 import {
+  EndpointsThrottlingConfig,
   IEndpointsThrottler,
   IThrottlingKeysGenerator,
   IThrottlingKeysGeneratorInput,
@@ -6,7 +7,6 @@ import {
   IThrottlingQuotaTracker,
   ThrottlingOperation,
   ThrottlingOperationOptions,
-  EndpointsThrottlingConfig,
   ThrottlingRetriesExaustedError,
 } from "./promise.throttler.types.ts";
 import moment from "moment";
@@ -14,7 +14,6 @@ import moment from "moment";
 export class EndpointsThrottler<
   KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
 > implements IEndpointsThrottler {
-  // static operations: Array<ThrottlingOperation<any, any>> = [];
   // deno-lint-ignore no-explicit-any
   private operations: Array<ThrottlingOperation<any, any>> = [];
 
@@ -59,7 +58,8 @@ export class EndpointsThrottler<
     const candidate = this.operations.shift();
     if (candidate) {
       const lockKey = this.throttlingKeysGenerator.getLockKey(
-        this.throttlingKeysGeneratorInput, this.throttlingOptions
+        this.throttlingKeysGeneratorInput,
+        this.throttlingOptions,
       );
       const lock = await this.throttlingLocksGenerator.acquire(lockKey);
       const executionMoment = moment();

@@ -9,8 +9,7 @@ const getQuotaTracker = (lockKey: string) => {
   return quotaTrackers[lockKey];
 };
 
-export class InMemoryThrottlingQuotaTracker
-  implements IThrottlingQuotaTracker {
+export class InMemoryThrottlingQuotaTracker implements IThrottlingQuotaTracker {
   set = (key: string, value: string | number): Promise<void> => {
     const quotaTracker = getQuotaTracker(key);
     quotaTracker.current = parseInt(value.toString());

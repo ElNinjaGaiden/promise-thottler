@@ -75,7 +75,11 @@ export interface IThrottlingKeysGenerator<
   T extends IThrottlingKeysGeneratorInput,
 > {
   getLockKey: (input: T, throttlerConfig: EndpointsThrottlingConfig) => string;
-  getCounterKey: (input: T, throttlerConfig: EndpointsThrottlingConfig, moment: moment.Moment) => string;
+  getCounterKey: (
+    input: T,
+    throttlerConfig: EndpointsThrottlingConfig,
+    moment: moment.Moment,
+  ) => string;
 }
 
 export interface IThrottlingLock {

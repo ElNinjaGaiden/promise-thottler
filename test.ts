@@ -5,12 +5,12 @@ import {
 } from "./promise.throttler.types.ts";
 import moment from "moment";
 import {
+  atmsApisThrottlingConfigs,
   FAKE_OPERATION_DURATION_MILISECONDS,
   OPERATIONS_TO_TEST,
+  scalabilityAwareThottlingConfig,
   VehicleCompanyAtmsApiEndpointConfig,
   WAIT_FOR_BRAND_NEW_MINUTE_TO_START,
-  atmsApisThrottlingConfigs,
-  scalabilityAwareThottlingConfig,
 } from "./throttler.config.ts";
 import { AxiosError } from "axios";
 import redis from "./redis.ts";
@@ -35,13 +35,13 @@ export interface IThrottlingMechanism {
   throttlingQuotaTracker: IThrottlingQuotaTracker;
 }
 
-const operation = (url: string, index: string) => {
+const operation = (atmskKey: string, url: string, index: string) => {
   return new Promise(function (resolve, _reject) {
     setTimeout(() => {
       console.log(
         `API operation ${index} completed at ${
           moment().format("HH:mm:ss")
-        }. Url operation sent to ${url}`,
+        }. Url operation sent to ${atmskKey} - ${url}`,
       );
       resolve(index);
       // reject('Dummy error');
@@ -49,27 +49,26 @@ const operation = (url: string, index: string) => {
   });
 };
 
-const prepareOperations = (throttlingMechanism: IThrottlingMechanism) => {
+const prepareOperations = (
+  getThrottlingMechanism: (lockKey: string) => IThrottlingMechanism,
+) => {
   // deno-lint-ignore no-explicit-any
   const operations: Array<Promise<any>> = [];
-  const { throttlingLocksGenerator, throttlingQuotaTracker } = throttlingMechanism;
   OPERATIONS_TO_TEST.forEach((operationsPerAtms) => {
-    const { atmsKey, vehicleCompanyId, operations: atmsOperationsGroups } = operationsPerAtms;
-    const atmsApisThrottlingConfig = atmsApisThrottlingConfigs.find(c => c.atmsKey === atmsKey);
-    if (!atmsApisThrottlingConfig) {
-      throw new Error(`No configuration found for ${atmsKey} API`);
-    }
-    const { endpointsThrottlingConfigs } = atmsApisThrottlingConfig;
-    const apiThrottler: IApiThrottler = new ApiThrottler<VehicleCompanyAtmsApiEndpointConfig>(
-      endpointsThrottlingConfigs,
+    const { atmsKey, vehicleCompanyId, operations: atmsOperationsGroups } =
+      operationsPerAtms;
+    const atmsEndpointsThrottlingConfigs = atmsApisThrottlingConfigs[atmsKey];
+    const apiThrottler: IApiThrottler = new ApiThrottler<
+      VehicleCompanyAtmsApiEndpointConfig
+    >(
+      atmsEndpointsThrottlingConfigs,
       scalabilityAwareThottlingConfig,
       {
         atmsKey,
         vehicleCompanyId,
       },
       new VehicleCompanyAtmsThrottlingKeysGenerator(),
-      throttlingLocksGenerator,
-      throttlingQuotaTracker
+      getThrottlingMechanism,
     );
     for (let j = 0; j < atmsOperationsGroups.length; j++) {
       const operationsGroup = atmsOperationsGroups[j];
@@ -77,7 +76,7 @@ const prepareOperations = (throttlingMechanism: IThrottlingMechanism) => {
         // deno-lint-ignore no-explicit-any
         operations.push(apiThrottler.add<any, AxiosError>(
           operationsGroup.url,
-          operation.bind(this, operationsGroup.url, i.toString()),
+          operation.bind(this, atmsKey, operationsGroup.url, i.toString()),
           {
             id: i.toString(),
             onOperationRescheduled: (
@@ -86,7 +85,7 @@ const prepareOperations = (throttlingMechanism: IThrottlingMechanism) => {
               id?: string,
             ) => {
               console.log(
-                `Operation ${id} to be sent to ${url} rescheduled to try to run at ${
+                `Operation ${id} to be sent to ${atmsKey} - ${url} rescheduled to try to run at ${
                   scheduleTime.format("HH:mm:ss")
                 }`,
               );
@@ -128,7 +127,9 @@ const doTest = async (operations: Array<Promise<any>>) => {
   Deno.exit(0);
 };
 
-export const test = (throttlingMechanism: IThrottlingMechanism) => {
+export const test = (
+  getThrottlingMechanism: (lockKey: string) => IThrottlingMechanism,
+) => {
   const now = moment();
   const nextMinute = moment().add(1, "minutes").seconds(0);
   const wait = WAIT_FOR_BRAND_NEW_MINUTE_TO_START
@@ -138,7 +139,7 @@ export const test = (throttlingMechanism: IThrottlingMechanism) => {
     console.log(`Waiting until ${nextMinute.format("HH:mm")} to start...`);
   }
   setTimeout(async () => {
-    const operations = prepareOperations(throttlingMechanism);
+    const operations = prepareOperations(getThrottlingMechanism);
     console.log(`Operations ready, ${operations.length} to execute.`);
     await doTest(operations);
   }, wait);

@@ -3,8 +3,6 @@ import {
   IApiThrottler,
   IThrottlingKeysGenerator,
   IThrottlingKeysGeneratorInput,
-  IThrottlingLocksGenerator,
-  IThrottlingQuotaTracker,
 } from "./promise.throttler.types.ts";
 import moment from "moment";
 import {

@@ -1,10 +1,24 @@
-import { InMemoryThrottlingLocksGenerator } from "./memory.throttler.locker.ts";
-import { InMemoryThrottlingQuotaTracker } from "./memory.throttler.quota.tracker.ts";
-import { IThrottlingMechanism } from "../test.ts";
+import { GetApiThrottlerFn } from "../test.ts";
+import { MemoryApiThrottler } from "./memory.throttler.api.ts";
+import {
+  EndpointsThrottlingConfig,
+  IApiThrottler,
+  IThrottlingKeysGenerator,
+  IThrottlingKeysGeneratorInput,
+} from "../promise.throttler.types.ts";
 
-export const getThrottlingMechanismTest = (
-  lockKey: string,
-): IThrottlingMechanism => ({
-  throttlingLocksGenerator: new InMemoryThrottlingLocksGenerator(lockKey),
-  throttlingQuotaTracker: new InMemoryThrottlingQuotaTracker(),
-});
+export const getApiThrottler: GetApiThrottlerFn = <
+  KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
+>(
+  endpointsThrottlingConfigs: EndpointsThrottlingConfig[],
+  throttlingKeysGeneratorInput: KeysGeneratorInput,
+  throttlingKeysGenerator: IThrottlingKeysGenerator<
+    KeysGeneratorInput
+  >,
+): IApiThrottler => {
+  return new MemoryApiThrottler<KeysGeneratorInput>(
+    endpointsThrottlingConfigs,
+    throttlingKeysGeneratorInput,
+    throttlingKeysGenerator,
+  );
+};

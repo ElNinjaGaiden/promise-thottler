@@ -1,5 +1,8 @@
 import {
+  EndpointsThrottlingConfig,
   IApiThrottler,
+  IThrottlingKeysGenerator,
+  IThrottlingKeysGeneratorInput,
   IThrottlingLocksGenerator,
   IThrottlingQuotaTracker,
 } from "./promise.throttler.types.ts";
@@ -8,13 +11,11 @@ import {
   atmsApisThrottlingConfigs,
   FAKE_OPERATION_DURATION_MILISECONDS,
   OPERATIONS_TO_TEST,
-  scalabilityAwareThottlingConfig,
   VehicleCompanyAtmsApiEndpointConfig,
   WAIT_FOR_BRAND_NEW_MINUTE_TO_START,
 } from "./throttler.config.ts";
 import { AxiosError } from "axios";
 import redis from "./redis.ts";
-import { ApiThrottler } from "./api.thottler.ts";
 import { VehicleCompanyAtmsThrottlingKeysGenerator } from "./throttler.config.ts";
 
 export const NETWORK_ERROR_CODES = [
@@ -30,10 +31,15 @@ export const NETWORK_ERROR_CODES = [
   // "ERR_BAD_REQUEST",
 ];
 
-export interface IThrottlingMechanism {
-  throttlingLocksGenerator: IThrottlingLocksGenerator;
-  throttlingQuotaTracker: IThrottlingQuotaTracker;
-}
+export type GetApiThrottlerFn = <
+  KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
+>(
+  endpointsThrottlingConfigs: EndpointsThrottlingConfig[],
+  throttlingKeysGeneratorInput: KeysGeneratorInput,
+  throttlingKeysGenerator: IThrottlingKeysGenerator<
+    KeysGeneratorInput
+  >,
+) => IApiThrottler;
 
 const operation = (atmskKey: string, url: string, index: string) => {
   return new Promise(function (resolve, _reject) {
@@ -50,25 +56,25 @@ const operation = (atmskKey: string, url: string, index: string) => {
 };
 
 const prepareOperations = (
-  getThrottlingMechanism: (lockKey: string) => IThrottlingMechanism,
+  getApiThrottler: GetApiThrottlerFn,
 ) => {
   // deno-lint-ignore no-explicit-any
   const operations: Array<Promise<any>> = [];
+  const throttlerKeysGenerator =
+    new VehicleCompanyAtmsThrottlingKeysGenerator();
   OPERATIONS_TO_TEST.forEach((operationsPerAtms) => {
     const { atmsKey, vehicleCompanyId, operations: atmsOperationsGroups } =
       operationsPerAtms;
     const atmsEndpointsThrottlingConfigs = atmsApisThrottlingConfigs[atmsKey];
-    const apiThrottler: IApiThrottler = new ApiThrottler<
-      VehicleCompanyAtmsApiEndpointConfig
-    >(
-      atmsEndpointsThrottlingConfigs,
-      scalabilityAwareThottlingConfig,
-      {
+    const vehicleCompanyAtmsApiEndpointConfig:
+      VehicleCompanyAtmsApiEndpointConfig = {
         atmsKey,
         vehicleCompanyId,
-      },
-      new VehicleCompanyAtmsThrottlingKeysGenerator(),
-      getThrottlingMechanism,
+      };
+    const apiThrottler = getApiThrottler(
+      atmsEndpointsThrottlingConfigs,
+      vehicleCompanyAtmsApiEndpointConfig,
+      throttlerKeysGenerator,
     );
     for (let j = 0; j < atmsOperationsGroups.length; j++) {
       const operationsGroup = atmsOperationsGroups[j];
@@ -128,7 +134,7 @@ const doTest = async (operations: Array<Promise<any>>) => {
 };
 
 export const test = (
-  getThrottlingMechanism: (lockKey: string) => IThrottlingMechanism,
+  getApiThrottler: GetApiThrottlerFn,
 ) => {
   const now = moment();
   const nextMinute = moment().add(1, "minutes").seconds(0);
@@ -139,7 +145,7 @@ export const test = (
     console.log(`Waiting until ${nextMinute.format("HH:mm")} to start...`);
   }
   setTimeout(async () => {
-    const operations = prepareOperations(getThrottlingMechanism);
+    const operations = prepareOperations(getApiThrottler);
     console.log(`Operations ready, ${operations.length} to execute.`);
     await doTest(operations);
   }, wait);

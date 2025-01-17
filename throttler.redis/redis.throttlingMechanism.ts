@@ -1,10 +1,24 @@
-import { IThrottlingMechanism } from "../test.ts";
-import { RedisThrottlingLocksGenerator } from "./redis.throttler.locker.ts";
-import { RedisThrottlingQuotaTracker } from "./redis.throttler.quota.tracker.ts";
+import {
+  EndpointsThrottlingConfig,
+  IApiThrottler,
+  IThrottlingKeysGenerator,
+  IThrottlingKeysGeneratorInput,
+} from "../promise.throttler.types.ts";
+import { GetApiThrottlerFn } from "../test.ts";
+import { RedisApiThrottler } from "./redis.throttler.api.ts";
 
-export const getThrottlingMechanismTest = (
-  _lockKey: string,
-): IThrottlingMechanism => ({
-  throttlingLocksGenerator: new RedisThrottlingLocksGenerator(),
-  throttlingQuotaTracker: new RedisThrottlingQuotaTracker(),
-});
+export const getApiThrottler: GetApiThrottlerFn = <
+  KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
+>(
+  endpointsThrottlingConfigs: EndpointsThrottlingConfig[],
+  throttlingKeysGeneratorInput: KeysGeneratorInput,
+  throttlingKeysGenerator: IThrottlingKeysGenerator<
+    KeysGeneratorInput
+  >,
+): IApiThrottler => {
+  return new RedisApiThrottler<KeysGeneratorInput>(
+    endpointsThrottlingConfigs,
+    throttlingKeysGeneratorInput,
+    throttlingKeysGenerator,
+  );
+};

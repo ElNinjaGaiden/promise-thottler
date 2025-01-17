@@ -80,7 +80,7 @@ export const atmsApisThrottlingConfigs: Record<
 
 export const scalabilityAwareThottlingConfig:
   ScalabilityAwareApiThrottlingConfig = {
-    autoScaleEnabled: true,
+    autoScaleEnabled: false,
     processors: 5,
   };
 

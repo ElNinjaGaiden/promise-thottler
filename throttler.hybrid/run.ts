@@ -1,4 +1,4 @@
 import { test } from "../test.ts";
-import { getThrottlingMechanismTest } from "./hybrid.throttlingMechanism.ts";
+import { getApiThrottler } from "./hybrid.throttlingMechanism.ts";
 
-await test(getThrottlingMechanismTest);
+await test(getApiThrottler);

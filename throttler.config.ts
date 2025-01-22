@@ -1,4 +1,3 @@
-import moment from "moment";
 import {
   EndpointsThrottlingConfig,
   IThrottlingKeysGenerator,
@@ -28,7 +27,9 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerMinute: 50,
+      operationsPerTimeSegment: 60,
+      unitOfTime: "minutes",
+      timeSegmentsLength: 1,
       retries: 3,
     },
     {
@@ -36,7 +37,9 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/webhook/gps/vehicle",
       urlRegexFlags: "i",
       matchingPrecedence: 1,
-      operationsPerMinute: 50,
+      operationsPerTimeSegment: 50,
+      unitOfTime: "minutes",
+      timeSegmentsLength: 1,
       retries: 3,
     },
   ],
@@ -46,7 +49,9 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerMinute: 50,
+      operationsPerTimeSegment: 60,
+      unitOfTime: "minutes",
+      timeSegmentsLength: 1,
       retries: 3,
     },
     {
@@ -54,7 +59,9 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/webhook/gps/vehicle",
       urlRegexFlags: "i",
       matchingPrecedence: 1,
-      operationsPerMinute: 50,
+      operationsPerTimeSegment: 50,
+      unitOfTime: "minutes",
+      timeSegmentsLength: 1,
       retries: 3,
     },
   ],
@@ -64,7 +71,9 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerMinute: 50,
+      operationsPerTimeSegment: 60,
+      unitOfTime: "minutes",
+      timeSegmentsLength: 1,
       retries: 3,
     },
     {
@@ -72,7 +81,9 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/webhook/gps/vehicle",
       urlRegexFlags: "i",
       matchingPrecedence: 1,
-      operationsPerMinute: 50,
+      operationsPerTimeSegment: 50,
+      unitOfTime: "minutes",
+      timeSegmentsLength: 1,
       retries: 3,
     },
   ],
@@ -80,7 +91,7 @@ export const atmsApisThrottlingConfigs: Record<
 
 export const scalabilityAwareThottlingConfig:
   ScalabilityAwareApiThrottlingConfig = {
-    autoScaleEnabled: false,
+    autoScaleEnabled: true,
     processors: 5,
   };
 
@@ -96,11 +107,11 @@ export const OPERATIONS_TO_TEST: Array<
     operations: [
       {
         url: "api/v1/endpoint1",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/endpoint2",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/webhook/gps/vehicle",
@@ -113,11 +124,11 @@ export const OPERATIONS_TO_TEST: Array<
     operations: [
       {
         url: "api/v1/endpoint1",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/endpoint2",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/webhook/gps/vehicle",
@@ -131,11 +142,11 @@ export const OPERATIONS_TO_TEST: Array<
     operations: [
       {
         url: "api/v1/endpoint1",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/endpoint2",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/webhook/gps/vehicle",
@@ -149,11 +160,11 @@ export const OPERATIONS_TO_TEST: Array<
     operations: [
       {
         url: "api/v1/endpoint1",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/endpoint2",
-        quantity: 15, // 125
+        quantity: 25, // 125
       },
       {
         url: "api/v1/webhook/gps/vehicle",
@@ -183,13 +194,11 @@ export class VehicleCompanyAtmsThrottlingKeysGenerator
   getCounterKey = (
     input: VehicleCompanyAtmsApiEndpointConfig,
     throttlerConfig: EndpointsThrottlingConfig,
-    moment: moment.Moment,
   ) => {
-    const currentHourMinute = moment.format("HH-mm");
     const { atmsKey, vehicleCompanyId } = input;
     const { urlSpecification } = throttlerConfig;
     return `${environment}:atms:${atmsKey}:throttling${
       vehicleCompanyId ? `:${vehicleCompanyId}` : ""
-    }:${urlSpecification}:${currentHourMinute}`;
+    }:${urlSpecification}:`;
   };
 }

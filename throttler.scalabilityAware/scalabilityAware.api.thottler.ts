@@ -48,13 +48,13 @@ export class ScalabilityAwareApiThrottler<
 
     this.endpointsThrottlers = this.sortedEndpointsThrottlingConfigs
       .map((endpointsThrottlingConfig) => {
-        const operationsPerMinute = autoScaleEnabled === false &&
+        const operationsPerUnitOfTime = autoScaleEnabled === false &&
             autoScalabilityDisabledCorrectly
           ? (Math.floor(
-            endpointsThrottlingConfig.operationsPerMinute /
+            endpointsThrottlingConfig.operationsPerUnitOfTime /
               (scalabilityAwareThottlingConfig.processors ?? 1),
           ) || 1)
-          : endpointsThrottlingConfig.operationsPerMinute;
+          : endpointsThrottlingConfig.operationsPerUnitOfTime;
         const lockKey = throttlingKeysGenerator.getLockKey(
           throttlingKeysGeneratorInput,
           endpointsThrottlingConfig,
@@ -64,7 +64,7 @@ export class ScalabilityAwareApiThrottler<
         return new EndpointsThrottler<KeysGeneratorInput>(
           {
             ...endpointsThrottlingConfig,
-            operationsPerMinute,
+            operationsPerUnitOfTime,
           },
           throttlingKeysGeneratorInput,
           throttlingKeysGenerator,

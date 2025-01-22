@@ -1,11 +1,15 @@
 import moment from "moment";
 
+export type ThrottlerConfigUnitsOfTime = "seconds" | "minutes" | "hours";
+
 export interface EndpointsThrottlingConfig {
   urlSpecification: string;
   urlRegexExpression: string;
   urlRegexFlags: string;
   matchingPrecedence: number;
-  operationsPerMinute: number;
+  operationsPerTimeSegment: number;
+  unitOfTime: ThrottlerConfigUnitsOfTime;
+  timeSegmentsLength: number;
   retries: number;
 }
 
@@ -78,7 +82,6 @@ export interface IThrottlingKeysGenerator<
   getCounterKey: (
     input: T,
     throttlerConfig: EndpointsThrottlingConfig,
-    moment: moment.Moment,
   ) => string;
 }
 

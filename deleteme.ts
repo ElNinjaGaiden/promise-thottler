@@ -18,4 +18,4 @@ console.log(segments);
 // const currentSegment = segments.find(s => s.includes(currentMinute));
 
 var date = moment("2025-01-22T00:01:00");
-console.log('Ojo', date.format('HH:mm:ss'));
+console.log("Ojo", date.format("HH:mm:ss"));

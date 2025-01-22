@@ -24,19 +24,22 @@ export class EndpointsThrottler<
   // deno-lint-ignore no-explicit-any
   private operations: Array<ThrottlingOperation<any, any>> = [];
 
-  static lockKeysTimePartsConfigs: Record<ThrottlerConfigUnitsOfTime, { end: number, pivotTimeFormat: string }> = {
+  static lockKeysTimePartsConfigs: Record<
+    ThrottlerConfigUnitsOfTime,
+    { end: number; pivotTimeFormat: string }
+  > = {
     seconds: {
       end: 59,
-      pivotTimeFormat: 'HH-mm'
+      pivotTimeFormat: "HH-mm",
     },
     minutes: {
       end: 59,
-      pivotTimeFormat: 'HH'
+      pivotTimeFormat: "HH",
     },
     hours: {
       end: 23,
-      pivotTimeFormat: ''
-    }
+      pivotTimeFormat: "",
+    },
   };
 
   constructor(
@@ -59,7 +62,8 @@ export class EndpointsThrottler<
 
   private getLockKeyTimePart = (executionMoment: moment.Moment) => {
     const { timeSegmentsLength, unitOfTime } = this.throttlingOptions;
-    const { end, pivotTimeFormat } = EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
+    const { end, pivotTimeFormat } =
+      EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
     const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
     const segments: Array<number[]> = [
       ...chunks(allUnits, timeSegmentsLength),
@@ -67,12 +71,14 @@ export class EndpointsThrottler<
     const currentTimeSegment = executionMoment[unitOfTime]();
     const currentSegment = segments.find((s) => s.includes(currentTimeSegment));
     if (!currentSegment) {
-      throw new Error(`Segment not found for unit of time: ${unitOfTime}, unit: ${currentTimeSegment}`);
+      throw new Error(
+        `Segment not found for unit of time: ${unitOfTime}, unit: ${currentTimeSegment}`,
+      );
     }
-    return `${pivotTimeFormat ? `${executionMoment.format(pivotTimeFormat)}-`: ''}${
-      this.getSegmentRepresentationForLockKey(currentSegment)
-    }`;
-  }
+    return `${
+      pivotTimeFormat ? `${executionMoment.format(pivotTimeFormat)}-` : ""
+    }${this.getSegmentRepresentationForLockKey(currentSegment)}`;
+  };
 
   /* The `getSegmentRepresentationForLockKey` function is responsible for generating a string
     representation of a segment of numbers for a lock key.

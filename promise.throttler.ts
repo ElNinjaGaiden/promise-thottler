@@ -61,12 +61,12 @@ export class EndpointsThrottler<
   }
 
   private getLockKeyTimePart = (executionMoment: moment.Moment) => {
-    const { timeSegmentsLength, unitOfTime } = this.throttlingOptions;
+    const { periodsLength, unitOfTime } = this.throttlingOptions;
     const { end, pivotTimeFormat } =
       EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
     const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
     const segments: Array<number[]> = [
-      ...chunks(allUnits, timeSegmentsLength),
+      ...chunks(allUnits, periodsLength),
     ];
     const currentTimeSegment = executionMoment[unitOfTime]();
     const currentSegment = segments.find((s) => s.includes(currentTimeSegment));
@@ -96,54 +96,6 @@ export class EndpointsThrottler<
         }`
     }]`;
   };
-
-  // getLockKeyTimePart = (executionMoment: moment.Moment) => {
-  //   const { unitOfTime } = this.throttlingOptions;
-  //   let timeWindowKeyPart = "";
-  //   switch (unitOfTime) {
-  //     case "seconds": {
-  //       // const end = 59;
-  //       // const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
-  //       // const segments: Array<number[]> = [
-  //       //   ...chunks(allUnits, unitsOfTimePerSegment),
-  //       // ];
-  //       // const currentSecond = executionMoment.seconds();
-  //       // const currentSegment = segments.find((s) => s.includes(currentSecond));
-  //       // if (!currentSegment) {
-  //       //   throw new Error(`Segment not found for unit of time: ${this.throttlingOptions.unitOfTime}, unit: ${currentSecond}`);
-  //       // }
-  //       // timeWindowKeyPart = `${executionMoment.format("HH-mm")}-${
-  //       //   this.getSegmentRepresentationForLockKey(currentSegment)
-  //       // }`;
-  //       timeWindowKeyPart = this.notAGoodNameYet(59, executionMoment, "HH-mm");
-  //       break;
-  //     }
-  //     case "minutes": {
-  //       // const end = 59;
-  //       // const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
-  //       // const segments: Array<number[]> = [
-  //       //   ...chunks(allUnits, unitsOfTimePerSegment),
-  //       // ];
-  //       // const currentMinute = executionMoment.minutes();
-  //       // const currentSegment = segments.find((s) => s.includes(currentMinute));
-  //       // if (!currentSegment) {
-  //       //   throw new Error(`Segment not found for unit of time: ${this.throttlingOptions.unitOfTime}, unit: ${currentMinute}`);
-  //       // }
-  //       // timeWindowKeyPart = `${executionMoment.format("HH")}-${
-  //       //   this.getSegmentRepresentationForLockKey(currentSegment)
-  //       // }`;
-  //       timeWindowKeyPart = this.notAGoodNameYet(59, executionMoment, "HH");
-  //       break;
-  //     }
-  //     case "hours": {
-  //       throw new Error("Under construction");
-  //       break;
-  //     }
-  //     default:
-  //       throw new Error(`Invalid unit of time: ${unitOfTime}`);
-  //   }
-  //   return timeWindowKeyPart;
-  // };
 
   getCounterKey = (executionMoment: moment.Moment) => {
     return `${
@@ -183,20 +135,21 @@ export class EndpointsThrottler<
       const lock = await this.throttlingLocksGenerator.acquire(lockKey);
       const executionMoment = moment();
       const currentCounterKey = this.getCounterKey(executionMoment);
-      const currentOperationsCounter = await this.throttlingQuotaTracker
-        .get(currentCounterKey);
       const { url, operation, resolve, reject, options: operationOptions } =
         candidate;
+      const canProceed = await this.throttlingQuotaTracker.canProceed(
+        currentCounterKey,
+        this.throttlingOptions,
+      );
       if (
-        currentOperationsCounter <
-          this.throttlingOptions.operationsPerTimeSegment
+        canProceed
       ) {
         // Rate limit has not been executed, we can proceed
         try {
           const returnValue = await operation(url);
-          await this.throttlingQuotaTracker.set(
+          await this.throttlingQuotaTracker.add(
             currentCounterKey,
-            currentOperationsCounter + 1,
+            candidate,
           );
           await lock.release();
           resolve(returnValue);
@@ -231,11 +184,13 @@ export class EndpointsThrottler<
   ) => {
     // Note: "retries + 1" to actually make the initial attempt and then the N available retries
     const { currentRetryAttempt, url, options: operationOptions } = operation;
-    const retries = operationOptions?.retries ?? this.throttlingOptions.retries;
+    const { retries: defaultRetries, periodsLength, unitOfTime } =
+      this.throttlingOptions;
+    const retries = operationOptions?.retries ?? defaultRetries;
     if (currentRetryAttempt <= retries + 1) {
       const nextTimeWindow = moment().add(
-        this.throttlingOptions.timeSegmentsLength,
-        this.throttlingOptions.unitOfTime,
+        periodsLength,
+        unitOfTime,
       ); // .seconds(0)
       if (operationOptions?.onOperationRescheduled) {
         operationOptions.onOperationRescheduled(

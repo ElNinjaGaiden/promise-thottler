@@ -31,7 +31,8 @@ export const atmsApisThrottlingConfigs: Record<
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
-      strategy: "rolling",
+      strategy: "strict_buckets",
+      persistenceStrategy: "detailed",
     },
     {
       urlSpecification: "api/v1/webhook/gps/vehicle",
@@ -42,7 +43,8 @@ export const atmsApisThrottlingConfigs: Record<
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
-      strategy: "rolling",
+      strategy: "strict_buckets",
+      persistenceStrategy: "detailed",
     },
   ],
   TRIP_MASTER: [
@@ -55,7 +57,8 @@ export const atmsApisThrottlingConfigs: Record<
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
-      strategy: "rolling",
+      strategy: "strict_buckets",
+      persistenceStrategy: "detailed",
     },
     {
       urlSpecification: "api/v1/webhook/gps/vehicle",
@@ -66,7 +69,8 @@ export const atmsApisThrottlingConfigs: Record<
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
-      strategy: "rolling",
+      strategy: "strict_buckets",
+      persistenceStrategy: "detailed",
     },
   ],
   ROUTE_GENIE: [
@@ -79,7 +83,8 @@ export const atmsApisThrottlingConfigs: Record<
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
-      strategy: "rolling",
+      strategy: "strict_buckets",
+      persistenceStrategy: "detailed",
     },
     {
       urlSpecification: "api/v1/webhook/gps/vehicle",
@@ -90,14 +95,15 @@ export const atmsApisThrottlingConfigs: Record<
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
-      strategy: "rolling",
+      strategy: "strict_buckets",
+      persistenceStrategy: "detailed",
     },
   ],
 };
 
 export const scalabilityAwareThottlingConfig:
   ScalabilityAwareApiThrottlingConfig = {
-    autoScaleEnabled: false,
+    autoScaleEnabled: true,
     processors: 5,
   };
 

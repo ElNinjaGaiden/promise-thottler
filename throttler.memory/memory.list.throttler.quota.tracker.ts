@@ -19,7 +19,8 @@ const getQuotaTracker = (lockKey: string) => {
   return quotaTrackers[lockKey];
 };
 
-export class InMemoryThrottlingQuotaTracker implements IThrottlingQuotaTracker {
+export class InMemoryListThrottlingQuotaTracker
+  implements IThrottlingQuotaTracker {
   add = (
     key: string,
     // deno-lint-ignore no-explicit-any

@@ -1,6 +1,8 @@
 import moment from "moment";
 
 export type ThrottlerConfigUnitsOfTime = "seconds" | "minutes" | "hours";
+export type ThrottlingQuotaTrackingStrategy = "strict_buckets" | "rolling";
+export type ThrottlingQuotaTrackingPersistenceStrategy = "simple" | "detailed";
 
 export interface EndpointsThrottlingConfig {
   urlSpecification: string;
@@ -11,7 +13,8 @@ export interface EndpointsThrottlingConfig {
   unitOfTime: ThrottlerConfigUnitsOfTime;
   periodsLength: number;
   retries: number;
-  strategy: "buckets" | "rolling";
+  strategy: ThrottlingQuotaTrackingStrategy;
+  persistenceStrategy: ThrottlingQuotaTrackingPersistenceStrategy;
 }
 
 export interface ScalabilityAwareApiThrottlingConfig {

@@ -60,39 +60,62 @@ export class EndpointsThrottler<
     return this.throttlingOptions.urlRegexFlags;
   }
 
-  private getLockKeyTimePart = (executionMoment: moment.Moment) => {
+  private getCurrentTimePeriod = (executionMoment: moment.Moment) => {
     const { periodsLength, unitOfTime } = this.throttlingOptions;
-    const { end, pivotTimeFormat } =
-      EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
+    const { end } = EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
     const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
-    const segments: Array<number[]> = [
+    const periods: Array<number[]> = [
       ...chunks(allUnits, periodsLength),
     ];
-    const currentTimeSegment = executionMoment[unitOfTime]();
-    const currentSegment = segments.find((s) => s.includes(currentTimeSegment));
-    if (!currentSegment) {
+    const currentTimePeriod = executionMoment[unitOfTime]();
+    const currentPeriod = periods.find((s) => s.includes(currentTimePeriod));
+    if (!currentPeriod) {
       throw new Error(
-        `Segment not found for unit of time: ${unitOfTime}, unit: ${currentTimeSegment}`,
+        `Period not found for unit of time: ${unitOfTime}, unit: ${currentTimePeriod}`,
       );
     }
-    return `${
-      pivotTimeFormat ? `${executionMoment.format(pivotTimeFormat)}-` : ""
-    }${this.getSegmentRepresentationForLockKey(currentSegment)}`;
+    return currentPeriod;
   };
 
-  /* The `getSegmentRepresentationForLockKey` function is responsible for generating a string
-    representation of a segment of numbers for a lock key.
-    For instance, if a throttler is using minutes as unit of time and it defines segments of 3 minutes
+  private getNextTimePeriod = (executionMoment: moment.Moment): number[] => {
+    const { periodsLength, unitOfTime } = this.throttlingOptions;
+    const { end } = EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
+    const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
+    const periods: Array<number[]> = [
+      ...chunks(allUnits, periodsLength),
+    ];
+    const currentTimePeriod = executionMoment[unitOfTime]();
+    const currentPeriodIndex = periods.findIndex((s) =>
+      s.includes(currentTimePeriod)
+    );
+    return currentPeriodIndex === periods.length - 1
+      ? periods[0]
+      : periods[currentPeriodIndex + 1];
+  };
+
+  private getLockKeyTimePart = (executionMoment: moment.Moment) => {
+    const { unitOfTime } = this.throttlingOptions;
+    const currentPeriod = this.getCurrentTimePeriod(executionMoment);
+    const { pivotTimeFormat } =
+      EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
+    return `${
+      pivotTimeFormat ? `${executionMoment.format(pivotTimeFormat)}-` : ""
+    }${this.getPeriodRepresentationForLockKey(currentPeriod)}`;
+  };
+
+  /* The `getPeriodRepresentationForLockKey` function is responsible for generating a string
+    representation of a periods of numbers for a lock key.
+    For instance, if a throttler is using minutes as unit of time and it defines periods of 3 minutes
     a minute representation will be split into chunks of 5: [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], etc.
-    If an operation is done in the minute 6 of a minute, it "belongs" to the segment [5, 6, 7, 8, 9]
-    This function generates "[5...9]" for that segment as part of a lock key
+    If an operation is done in the minute 6 of a minute, it "belongs" to the period [5, 6, 7, 8, 9]
+    This function generates "[5...9]" for that period as part of a lock key
   */
-  private getSegmentRepresentationForLockKey = (segment: number[]) => {
+  private getPeriodRepresentationForLockKey = (period: number[]) => {
     return `[${
-      segment.length === 1
-        ? `${segment[0].toString().padStart(2, "0")}`
-        : `${segment[0].toString().padStart(2, "0")}...${
-          segment[segment.length - 1].toString().padStart(2, "0")
+      period.length === 1
+        ? `${period[0].toString().padStart(2, "0")}`
+        : `${period[0].toString().padStart(2, "0")}...${
+          period[period.length - 1].toString().padStart(2, "0")
         }`
     }]`;
   };
@@ -184,14 +207,10 @@ export class EndpointsThrottler<
   ) => {
     // Note: "retries + 1" to actually make the initial attempt and then the N available retries
     const { currentRetryAttempt, url, options: operationOptions } = operation;
-    const { retries: defaultRetries, periodsLength, unitOfTime } =
-      this.throttlingOptions;
+    const { retries: defaultRetries } = this.throttlingOptions;
     const retries = operationOptions?.retries ?? defaultRetries;
     if (currentRetryAttempt <= retries + 1) {
-      const nextTimeWindow = moment().add(
-        periodsLength,
-        unitOfTime,
-      ); // .seconds(0)
+      const nextTimeWindow = this.getNextTimeWindow(previousAttemptMoment);
       if (operationOptions?.onOperationRescheduled) {
         operationOptions.onOperationRescheduled(
           nextTimeWindow,
@@ -211,6 +230,30 @@ export class EndpointsThrottler<
           } has been aborted since it did not complete succesfully after ${retries} retries`,
         ),
       );
+    }
+  };
+
+  private getNextTimeWindow = (
+    previousAttemptMoment: moment.Moment,
+  ): moment.Moment => {
+    const { periodsLength, unitOfTime, strategy } = this.throttlingOptions;
+    const nextTimeWindow = moment().add(
+      periodsLength,
+      unitOfTime,
+    );
+    if (strategy === "rolling") {
+      return nextTimeWindow;
+    }
+    // Strategy is "buckets"
+    switch (unitOfTime) {
+      case "seconds":
+        return nextTimeWindow.seconds(
+          this.getNextTimePeriod(previousAttemptMoment)[0],
+        );
+      case "minutes":
+        return nextTimeWindow.seconds(0);
+      case "hours":
+        return nextTimeWindow.minutes(0).seconds(0);
     }
   };
 }

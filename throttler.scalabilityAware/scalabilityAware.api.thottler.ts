@@ -9,9 +9,11 @@ import {
   ScalabilityAwareApiThrottlingConfig,
 } from "../promise.throttler.types.ts";
 import { InMemoryThrottlingLocksGenerator } from "../throttler.memory/memory.throttler.locker.ts";
-import { InMemoryThrottlingQuotaTracker } from "../throttler.memory/memory.throttler.quota.tracker.ts";
+import { InMemoryListThrottlingQuotaTracker } from "../throttler.memory/memory.list.throttler.quota.tracker.ts";
 import { RedisThrottlingLocksGenerator } from "../throttler.redis/redis.throttler.locker.ts";
-import { RedisThrottlingQuotaTracker } from "../throttler.redis/redis.throttler.quota.tracker.ts";
+import { RedisListThrottlingQuotaTracker } from "../throttler.redis/redis.list.throttler.quota.tracker.ts";
+import { RedisCounterThrottlingQuotaTracker } from "../throttler.redis/redis.counter.throttler.quota.tracker.ts";
+import { InMemoryCounterThrottlingQuotaTracker } from "../throttler.memory/memory.counter.throttler.quota.tracker.ts";
 
 interface IThrottlingMechanism {
   throttlingLocksGenerator: IThrottlingLocksGenerator;
@@ -48,23 +50,23 @@ export class ScalabilityAwareApiThrottler<
 
     this.endpointsThrottlers = this.sortedEndpointsThrottlingConfigs
       .map((endpointsThrottlingConfig) => {
-        const operationsPerTimeSegment = autoScaleEnabled === false &&
+        const operationsPerPeriod = autoScaleEnabled === false &&
             autoScalabilityDisabledCorrectly
           ? (Math.floor(
-            endpointsThrottlingConfig.operationsPerTimeSegment /
+            endpointsThrottlingConfig.operationsPerPeriod /
               (scalabilityAwareThottlingConfig.processors ?? 1),
           ) || 1)
-          : endpointsThrottlingConfig.operationsPerTimeSegment;
+          : endpointsThrottlingConfig.operationsPerPeriod;
         const lockKey = throttlingKeysGenerator.getLockKey(
           throttlingKeysGeneratorInput,
           endpointsThrottlingConfig,
         );
         const { throttlingLocksGenerator, throttlingQuotaTracker } = this
-          .getThrottlerMechanism(lockKey);
+          .getThrottlerMechanism(lockKey, endpointsThrottlingConfig);
         return new EndpointsThrottler<KeysGeneratorInput>(
           {
             ...endpointsThrottlingConfig,
-            operationsPerTimeSegment,
+            operationsPerPeriod,
           },
           throttlingKeysGeneratorInput,
           throttlingKeysGenerator,
@@ -76,15 +78,21 @@ export class ScalabilityAwareApiThrottler<
 
   getThrottlerMechanism = (
     lockKey: string,
+    endpointsThrottlingConfig: EndpointsThrottlingConfig,
   ): IThrottlingMechanism => {
+    const { persistenceStrategy } = endpointsThrottlingConfig;
     const throttlingLocksGenerator: IThrottlingLocksGenerator =
       this.scalabilityAwareThottlingConfig.autoScaleEnabled
         ? new RedisThrottlingLocksGenerator()
         : new InMemoryThrottlingLocksGenerator(lockKey);
     const throttlingQuotaTracker: IThrottlingQuotaTracker =
       this.scalabilityAwareThottlingConfig.autoScaleEnabled
-        ? new RedisThrottlingQuotaTracker()
-        : new InMemoryThrottlingQuotaTracker();
+        ? (persistenceStrategy === "detailed"
+          ? new RedisListThrottlingQuotaTracker()
+          : new RedisCounterThrottlingQuotaTracker())
+        : (persistenceStrategy === "detailed"
+          ? new InMemoryListThrottlingQuotaTracker()
+          : new InMemoryCounterThrottlingQuotaTracker());
     return {
       throttlingLocksGenerator,
       throttlingQuotaTracker,

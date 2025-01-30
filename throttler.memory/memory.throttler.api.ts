@@ -6,7 +6,7 @@ import {
   IThrottlingKeysGeneratorInput,
 } from "../promise.throttler.types.ts";
 import { InMemoryThrottlingLocksGenerator } from "./memory.throttler.locker.ts";
-import { InMemoryThrottlingQuotaTracker } from "./memory.throttler.quota.tracker.ts";
+import { InMemoryListThrottlingQuotaTracker } from "./memory.list.throttler.quota.tracker.ts";
 
 export class MemoryApiThrottler<
   KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
@@ -35,7 +35,7 @@ export class MemoryApiThrottler<
           throttlingKeysGeneratorInput,
           throttlingKeysGenerator,
           new InMemoryThrottlingLocksGenerator(lockKey),
-          new InMemoryThrottlingQuotaTracker(),
+          new InMemoryListThrottlingQuotaTracker(),
         );
       });
   }

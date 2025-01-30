@@ -1,16 +1,20 @@
 import moment from "moment";
 
 export type ThrottlerConfigUnitsOfTime = "seconds" | "minutes" | "hours";
+export type ThrottlingQuotaTrackingStrategy = "strict_buckets" | "rolling";
+export type ThrottlingQuotaTrackingPersistenceStrategy = "simple" | "detailed";
 
 export interface EndpointsThrottlingConfig {
   urlSpecification: string;
   urlRegexExpression: string;
   urlRegexFlags: string;
   matchingPrecedence: number;
-  operationsPerTimeSegment: number;
+  operationsPerPeriod: number;
   unitOfTime: ThrottlerConfigUnitsOfTime;
-  timeSegmentsLength: number;
+  periodsLength: number;
   retries: number;
+  strategy: ThrottlingQuotaTrackingStrategy;
+  persistenceStrategy: ThrottlingQuotaTrackingPersistenceStrategy;
 }
 
 export interface ScalabilityAwareApiThrottlingConfig {
@@ -47,6 +51,12 @@ export interface ThrottlingOperation<T, TError extends Error> {
   options?: ThrottlingOperationOptions<TError>;
 }
 
+export interface ThrottlingOperationTrack {
+  url: string;
+  timestamp: string;
+  id?: string;
+}
+
 export interface IEndpointsThrottler {
   get throttlingOptions(): EndpointsThrottlingConfig;
   add: <T, TError extends Error>(
@@ -65,11 +75,16 @@ export interface IApiThrottler {
 }
 
 export interface IThrottlingQuotaTracker {
-  set: (
+  add: (
     key: string,
-    value: string | number,
+    // deno-lint-ignore no-explicit-any
+    operation: ThrottlingOperation<any, any>,
   ) => Promise<void>;
-  get: (key: string) => Promise<number>;
+  // get: (key: string, throttlerConfig: EndpointsThrottlingConfig) => Promise<number>;
+  canProceed: (
+    key: string,
+    throttlerConfig: EndpointsThrottlingConfig,
+  ) => Promise<boolean>;
 }
 
 // deno-lint-ignore no-empty-interface

@@ -6,7 +6,7 @@ import {
   IThrottlingKeysGeneratorInput,
 } from "../promise.throttler.types.ts";
 import { RedisThrottlingLocksGenerator } from "./redis.throttler.locker.ts";
-import { RedisThrottlingQuotaTracker } from "./redis.throttler.quota.tracker.ts";
+import { RedisListThrottlingQuotaTracker } from "./redis.list.throttler.quota.tracker.ts";
 
 export class RedisApiThrottler<
   KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
@@ -31,7 +31,7 @@ export class RedisApiThrottler<
           throttlingKeysGeneratorInput,
           throttlingKeysGenerator,
           new RedisThrottlingLocksGenerator(),
-          new RedisThrottlingQuotaTracker(),
+          new RedisListThrottlingQuotaTracker(),
         );
       });
   }

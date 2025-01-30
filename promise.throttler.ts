@@ -236,15 +236,15 @@ export class EndpointsThrottler<
   private getNextTimeWindow = (
     previousAttemptMoment: moment.Moment,
   ): moment.Moment => {
-    const { periodsLength, unitOfTime, strategy } = this.throttlingOptions;
+    const { periodsLength, unitOfTime, quotaTrackingStrategy } = this.throttlingOptions;
     const nextTimeWindow = moment().add(
       periodsLength,
       unitOfTime,
     );
-    if (strategy === "rolling") {
+    if (quotaTrackingStrategy === "rolling") {
       return nextTimeWindow;
     }
-    // Strategy is "buckets"
+    // Quota tracking strategy is "strict_buckets"
     switch (unitOfTime) {
       case "seconds":
         return nextTimeWindow.seconds(

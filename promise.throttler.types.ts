@@ -13,7 +13,7 @@ export interface EndpointsThrottlingConfig {
   unitOfTime: ThrottlerConfigUnitsOfTime;
   periodsLength: number;
   retries: number;
-  strategy: ThrottlingQuotaTrackingStrategy;
+  quotaTrackingStrategy: ThrottlingQuotaTrackingStrategy;
   persistenceStrategy: ThrottlingQuotaTrackingPersistenceStrategy;
 }
 
@@ -80,7 +80,6 @@ export interface IThrottlingQuotaTracker {
     // deno-lint-ignore no-explicit-any
     operation: ThrottlingOperation<any, any>,
   ) => Promise<void>;
-  // get: (key: string, throttlerConfig: EndpointsThrottlingConfig) => Promise<number>;
   canProceed: (
     key: string,
     throttlerConfig: EndpointsThrottlingConfig,
@@ -108,5 +107,4 @@ export interface IThrottlingLocksGenerator {
   acquire: (lockKey: string) => Promise<IThrottlingLock>;
 }
 
-export class ThrottlingRetriesExaustedError extends Error {
-}
+export class ThrottlingRetriesExaustedError extends Error {}

@@ -68,7 +68,12 @@ export class InMemoryThrottlingLocksGenerator
     }
   };
 
-  acquire = (lockKey: string): Promise<IThrottlingLock> => {
+  acquire = (lockKey: string, throttlerEnabled: boolean): Promise<IThrottlingLock> => {
+    if (!throttlerEnabled) {
+      return Promise.resolve({
+        release: () => Promise.resolve()
+      });
+    }
     const memoryThrottlerLocksGenerator = getInMemoryLocksGenerator(lockKey);
     const memoryThrottlerLock = new InMemoryThrottlingLock(
       memoryThrottlerLocksGenerator,

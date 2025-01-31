@@ -33,6 +33,7 @@ export const atmsApisThrottlingConfigs: Record<
       retries: 3,
       quotaTrackingStrategy: "strict_buckets",
       persistenceStrategy: "detailed",
+      enabled: true,
     },
     {
       urlSpecification: "api/v1/webhook/gps/vehicle",
@@ -45,6 +46,7 @@ export const atmsApisThrottlingConfigs: Record<
       retries: 3,
       quotaTrackingStrategy: "strict_buckets",
       persistenceStrategy: "detailed",
+      enabled: true,
     },
   ],
   TRIP_MASTER: [
@@ -59,6 +61,7 @@ export const atmsApisThrottlingConfigs: Record<
       retries: 3,
       quotaTrackingStrategy: "strict_buckets",
       persistenceStrategy: "detailed",
+      enabled: true,
     },
     {
       urlSpecification: "api/v1/webhook/gps/vehicle",
@@ -71,6 +74,7 @@ export const atmsApisThrottlingConfigs: Record<
       retries: 3,
       quotaTrackingStrategy: "strict_buckets",
       persistenceStrategy: "detailed",
+      enabled: true,
     },
   ],
   ROUTE_GENIE: [
@@ -85,6 +89,7 @@ export const atmsApisThrottlingConfigs: Record<
       retries: 3,
       quotaTrackingStrategy: "strict_buckets",
       persistenceStrategy: "detailed",
+      enabled: true,
     },
     {
       urlSpecification: "api/v1/webhook/gps/vehicle",
@@ -97,6 +102,7 @@ export const atmsApisThrottlingConfigs: Record<
       retries: 3,
       quotaTrackingStrategy: "strict_buckets",
       persistenceStrategy: "detailed",
+      enabled: true,
     },
   ],
 };

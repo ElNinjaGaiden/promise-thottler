@@ -155,7 +155,7 @@ export class EndpointsThrottler<
         this.throttlingKeysGeneratorInput,
         this.throttlingOptions,
       );
-      const lock = await this.throttlingLocksGenerator.acquire(lockKey);
+      const lock = await this.throttlingLocksGenerator.acquire(lockKey, this.throttlingOptions.enabled);
       const executionMoment = moment();
       const currentCounterKey = this.getCounterKey(executionMoment);
       const { url, operation, resolve, reject, options: operationOptions } =
@@ -165,7 +165,7 @@ export class EndpointsThrottler<
         this.throttlingOptions,
       );
       if (
-        canProceed
+        canProceed || !this.throttlingOptions.enabled
       ) {
         // Rate limit has not been executed, we can proceed
         try {

@@ -15,6 +15,7 @@ export interface EndpointsThrottlingConfig {
   retries: number;
   quotaTrackingStrategy: ThrottlingQuotaTrackingStrategy;
   persistenceStrategy: ThrottlingQuotaTrackingPersistenceStrategy;
+  enabled: boolean;
 }
 
 export interface ScalabilityAwareApiThrottlingConfig {

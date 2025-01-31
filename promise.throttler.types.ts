@@ -105,7 +105,7 @@ export interface IThrottlingLock {
 }
 
 export interface IThrottlingLocksGenerator {
-  acquire: (lockKey: string) => Promise<IThrottlingLock>;
+  acquire: (lockKey: string, throttlerEnabled: boolean) => Promise<IThrottlingLock>;
 }
 
 export class ThrottlingRetriesExaustedError extends Error {}

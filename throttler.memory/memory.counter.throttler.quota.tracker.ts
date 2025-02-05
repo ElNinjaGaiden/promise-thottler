@@ -1,7 +1,4 @@
-import {
-  EndpointsThrottlingConfig,
-  ThrottlingOperation,
-} from "../promise.throttler.types.ts";
+import { ThrottlingOperation } from "../promise.throttler.types.ts";
 import { IThrottlingQuotaTracker } from "../promise.throttler.types.ts";
 
 const quotaTrackers: Record<
@@ -28,12 +25,10 @@ export class InMemoryCounterThrottlingQuotaTracker
     return Promise.resolve();
   };
 
-  canProceed = (
+  current = (
     key: string,
-    throttlerConfig: EndpointsThrottlingConfig,
-  ): Promise<boolean> => {
-    const { operationsPerPeriod } = throttlerConfig;
+  ): Promise<number> => {
     const { current } = getQuotaTracker(key);
-    return Promise.resolve(current < operationsPerPeriod);
+    return Promise.resolve(current);
   };
 }

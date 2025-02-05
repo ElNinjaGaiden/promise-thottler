@@ -1,8 +1,5 @@
 import { ThrottlingOperationTrack } from "../promise.throttler.types.ts";
-import {
-  EndpointsThrottlingConfig,
-  ThrottlingOperation,
-} from "../promise.throttler.types.ts";
+import { ThrottlingOperation } from "../promise.throttler.types.ts";
 import { IThrottlingQuotaTracker } from "../promise.throttler.types.ts";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
@@ -35,12 +32,10 @@ export class InMemoryListThrottlingQuotaTracker
     return Promise.resolve();
   };
 
-  canProceed = (
+  current = (
     key: string,
-    throttlerConfig: EndpointsThrottlingConfig,
-  ): Promise<boolean> => {
-    const { operationsPerPeriod } = throttlerConfig;
+  ): Promise<number> => {
     const { operations } = getQuotaTracker(key);
-    return Promise.resolve(operations.length < operationsPerPeriod);
+    return Promise.resolve(operations.length);
   };
 }

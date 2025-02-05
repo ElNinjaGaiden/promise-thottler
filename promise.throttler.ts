@@ -1,3 +1,4 @@
+import { IThrottlingLock } from "./promise.throttler.types.ts";
 import {
   EndpointsThrottlingConfig,
   IEndpointsThrottler,
@@ -121,12 +122,12 @@ export class EndpointsThrottler<
   };
 
   getCounterKey = (executionMoment: moment.Moment) => {
+    const { urlSpecification } = this.throttlingOptions;
     return `${
       this.throttlingKeysGenerator.getCounterKey(
         this.throttlingKeysGeneratorInput,
-        this.throttlingOptions,
       )
-    }${this.getLockKeyTimePart(executionMoment)}`;
+    }:${urlSpecification}:${this.getLockKeyTimePart(executionMoment)}`;
   };
 
   add = <T, TError extends Error>(
@@ -148,22 +149,43 @@ export class EndpointsThrottler<
     return p;
   };
 
+  private async acquireLock(): Promise<IThrottlingLock> {
+    const { enabled, urlSpecification } = this.throttlingOptions;
+    if (enabled) {
+      const lockKey = `${
+        this.throttlingKeysGenerator.getLockKey(
+          this.throttlingKeysGeneratorInput,
+        )
+      }:${urlSpecification}:lock`;
+      return await this.throttlingLocksGenerator.acquire(lockKey);
+    }
+    // Throttling disabled, return fake lock
+    return Promise.resolve({
+      release: () => Promise.resolve(),
+    });
+  }
+
+  private async canProceed(executionMoment: moment.Moment): Promise<boolean> {
+    const { enabled, operationsPerPeriod } = this.throttlingOptions;
+    if (enabled) {
+      const currentCounterKey = this.getCounterKey(executionMoment);
+      const currentQuotaConsumed = await this.throttlingQuotaTracker.current(
+        currentCounterKey,
+      );
+      return currentQuotaConsumed < operationsPerPeriod;
+    }
+    // Throttling disabled, return true as always can proceed
+    return true;
+  }
+
   private doDequeue = async () => {
     const candidate = this.operations.shift();
     if (candidate) {
-      const lockKey = this.throttlingKeysGenerator.getLockKey(
-        this.throttlingKeysGeneratorInput,
-        this.throttlingOptions,
-      );
-      const lock = await this.throttlingLocksGenerator.acquire(lockKey, this.throttlingOptions.enabled);
+      const lock = await this.acquireLock();
       const executionMoment = moment();
-      const currentCounterKey = this.getCounterKey(executionMoment);
       const { url, operation, resolve, reject, options: operationOptions } =
         candidate;
-      const canProceed = await this.throttlingQuotaTracker.canProceed(
-        currentCounterKey,
-        this.throttlingOptions,
-      );
+      const canProceed = await this.canProceed(executionMoment);
       if (
         canProceed || !this.throttlingOptions.enabled
       ) {
@@ -171,7 +193,7 @@ export class EndpointsThrottler<
         try {
           const returnValue = await operation(url);
           await this.throttlingQuotaTracker.add(
-            currentCounterKey,
+            this.getCounterKey(executionMoment),
             candidate,
           );
           await lock.release();
@@ -236,7 +258,8 @@ export class EndpointsThrottler<
   private getNextTimeWindow = (
     previousAttemptMoment: moment.Moment,
   ): moment.Moment => {
-    const { periodsLength, unitOfTime, quotaTrackingStrategy } = this.throttlingOptions;
+    const { periodsLength, unitOfTime, quotaTrackingStrategy } =
+      this.throttlingOptions;
     const nextTimeWindow = moment().add(
       periodsLength,
       unitOfTime,

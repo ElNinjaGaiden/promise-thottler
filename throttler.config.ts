@@ -27,7 +27,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerPeriod: 60,
+      operationsPerPeriod: 50,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -109,7 +109,7 @@ export const atmsApisThrottlingConfigs: Record<
 
 export const scalabilityAwareThottlingConfig:
   ScalabilityAwareApiThrottlingConfig = {
-    autoScaleEnabled: true,
+    autoScaleEnabled: false,
     processors: 5,
   };
 
@@ -200,23 +200,19 @@ export class VehicleCompanyAtmsThrottlingKeysGenerator
   implements IThrottlingKeysGenerator<VehicleCompanyAtmsApiEndpointConfig> {
   getLockKey = (
     input: VehicleCompanyAtmsApiEndpointConfig,
-    throttlerConfig: EndpointsThrottlingConfig,
   ): string => {
     const { atmsKey, vehicleCompanyId } = input;
-    const { urlSpecification } = throttlerConfig;
     return `${environment}:atms:${atmsKey}:throttling${
       vehicleCompanyId ? `:${vehicleCompanyId}` : ""
-    }:${urlSpecification}:lock`;
+    }`;
   };
 
   getCounterKey = (
     input: VehicleCompanyAtmsApiEndpointConfig,
-    throttlerConfig: EndpointsThrottlingConfig,
   ) => {
     const { atmsKey, vehicleCompanyId } = input;
-    const { urlSpecification } = throttlerConfig;
     return `${environment}:atms:${atmsKey}:throttling${
       vehicleCompanyId ? `:${vehicleCompanyId}` : ""
-    }:${urlSpecification}:`;
+    }`;
   };
 }

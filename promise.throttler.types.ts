@@ -81,10 +81,9 @@ export interface IThrottlingQuotaTracker {
     // deno-lint-ignore no-explicit-any
     operation: ThrottlingOperation<any, any>,
   ) => Promise<void>;
-  canProceed: (
+  current: (
     key: string,
-    throttlerConfig: EndpointsThrottlingConfig,
-  ) => Promise<boolean>;
+  ) => Promise<number>;
 }
 
 // deno-lint-ignore no-empty-interface
@@ -93,11 +92,8 @@ export interface IThrottlingKeysGeneratorInput {}
 export interface IThrottlingKeysGenerator<
   T extends IThrottlingKeysGeneratorInput,
 > {
-  getLockKey: (input: T, throttlerConfig: EndpointsThrottlingConfig) => string;
-  getCounterKey: (
-    input: T,
-    throttlerConfig: EndpointsThrottlingConfig,
-  ) => string;
+  getLockKey: (input: T) => string;
+  getCounterKey: (input: T) => string;
 }
 
 export interface IThrottlingLock {
@@ -105,7 +101,7 @@ export interface IThrottlingLock {
 }
 
 export interface IThrottlingLocksGenerator {
-  acquire: (lockKey: string, throttlerEnabled: boolean) => Promise<IThrottlingLock>;
+  acquire: (lockKey: string) => Promise<IThrottlingLock>;
 }
 
 export class ThrottlingRetriesExaustedError extends Error {}

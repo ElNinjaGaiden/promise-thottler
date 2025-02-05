@@ -59,7 +59,6 @@ export class ScalabilityAwareApiThrottler<
           : endpointsThrottlingConfig.operationsPerPeriod;
         const lockKey = throttlingKeysGenerator.getLockKey(
           throttlingKeysGeneratorInput,
-          endpointsThrottlingConfig,
         );
         const { throttlingLocksGenerator, throttlingQuotaTracker } = this
           .getThrottlerMechanism(lockKey, endpointsThrottlingConfig);

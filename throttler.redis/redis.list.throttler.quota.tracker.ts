@@ -1,7 +1,4 @@
-import {
-  EndpointsThrottlingConfig,
-  ThrottlingOperation,
-} from "../promise.throttler.types.ts";
+import { ThrottlingOperation } from "../promise.throttler.types.ts";
 import {
   IThrottlingQuotaTracker,
   ThrottlingOperationTrack,
@@ -31,12 +28,9 @@ export class RedisListThrottlingQuotaTracker
     }
   };
 
-  canProceed = async (
+  current = async (
     key: string,
-    throttlerConfig: EndpointsThrottlingConfig,
-  ): Promise<boolean> => {
-    const currentQuotaConsumed = await redis.llen(key);
-    const { operationsPerPeriod } = throttlerConfig;
-    return currentQuotaConsumed < operationsPerPeriod;
+  ): Promise<number> => {
+    return await redis.llen(key);
   };
 }

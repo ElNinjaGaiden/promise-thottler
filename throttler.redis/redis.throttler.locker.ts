@@ -15,12 +15,7 @@ const redlock = new Redlock([redis], {
 
 export class RedisThrottlingLocksGenerator
   implements IThrottlingLocksGenerator {
-  acquire = async (lockKey: string, throttlerEnabled: boolean): Promise<IThrottlingLock> => {
-    if (!throttlerEnabled) {
-      return Promise.resolve({
-        release: () => Promise.resolve()
-      });
-    }
+  acquire = async (lockKey: string): Promise<IThrottlingLock> => {
     const redisLock = await redlock.acquire([lockKey], 5000);
     const lock: IThrottlingLock = {
       release: async () => {

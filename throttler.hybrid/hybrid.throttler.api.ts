@@ -28,7 +28,6 @@ export class HybridApiThrottler<
       .map((endpointsThrottlingConfig) => {
         const lockKey = throttlingKeysGenerator.getLockKey(
           throttlingKeysGeneratorInput,
-          endpointsThrottlingConfig,
         );
         return new EndpointsThrottler<KeysGeneratorInput>(
           endpointsThrottlingConfig,

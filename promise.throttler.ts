@@ -53,15 +53,7 @@ export class EndpointsThrottler<
     readonly throttlingQuotaTracker: IThrottlingQuotaTracker,
   ) {}
 
-  get urlRegexExpression(): string {
-    return this.throttlingOptions.urlRegexExpression;
-  }
-
-  get urlRegexFlags(): string {
-    return this.throttlingOptions.urlRegexFlags;
-  }
-
-  private getCurrentTimePeriod = (executionMoment: moment.Moment) => {
+  private getCurrentTimePeriodData = (executionMoment: moment.Moment) => {
     const { periodsLength, unitOfTime } = this.throttlingOptions;
     const { end } = EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
     const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
@@ -69,26 +61,21 @@ export class EndpointsThrottler<
       ...chunks(allUnits, periodsLength),
     ];
     const currentTimePeriod = executionMoment[unitOfTime]();
-    const currentPeriod = periods.find((s) => s.includes(currentTimePeriod));
-    if (!currentPeriod) {
+    const currentPeriodIndex = periods.findIndex((s) => s.includes(currentTimePeriod));
+    if (currentPeriodIndex === -1) {
       throw new Error(
         `Period not found for unit of time: ${unitOfTime}, unit: ${currentTimePeriod}`,
       );
     }
-    return currentPeriod;
+    return {
+      periods,
+      currentPeriodIndex,
+      currentPeriod: periods[currentPeriodIndex],
+    };
   };
 
   private getNextTimePeriod = (executionMoment: moment.Moment): number[] => {
-    const { periodsLength, unitOfTime } = this.throttlingOptions;
-    const { end } = EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
-    const allUnits = Array.from({ length: end + 1 }, (_, i) => i);
-    const periods: Array<number[]> = [
-      ...chunks(allUnits, periodsLength),
-    ];
-    const currentTimePeriod = executionMoment[unitOfTime]();
-    const currentPeriodIndex = periods.findIndex((s) =>
-      s.includes(currentTimePeriod)
-    );
+    const { periods, currentPeriodIndex } = this.getCurrentTimePeriodData(executionMoment);
     return currentPeriodIndex === periods.length - 1
       ? periods[0]
       : periods[currentPeriodIndex + 1];
@@ -96,7 +83,7 @@ export class EndpointsThrottler<
 
   private getLockKeyTimePart = (executionMoment: moment.Moment) => {
     const { unitOfTime } = this.throttlingOptions;
-    const currentPeriod = this.getCurrentTimePeriod(executionMoment);
+    const { currentPeriod } = this.getCurrentTimePeriodData(executionMoment);
     const { pivotTimeFormat } =
       EndpointsThrottler.lockKeysTimePartsConfigs[unitOfTime];
     return `${

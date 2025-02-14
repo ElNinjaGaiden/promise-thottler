@@ -124,6 +124,7 @@ export class EndpointsThrottler<
   ): Promise<T> => {
     const p = new Promise<T>((resolve, reject) => {
       this.operations.push({
+        timestamp: new Date().getTime(),
         url,
         operation,
         resolve,
@@ -136,7 +137,7 @@ export class EndpointsThrottler<
     return p;
   };
 
-  private async acquireLock(): Promise<IThrottlingLock> {
+  private async acquireLock(operationTimestamp: number): Promise<IThrottlingLock> {
     const { enabled, urlSpecification } = this.throttlingOptions;
     if (enabled) {
       const lockKey = `${
@@ -144,7 +145,7 @@ export class EndpointsThrottler<
           this.throttlingKeysGeneratorInput,
         )
       }:${urlSpecification}:lock`;
-      return await this.throttlingLocksGenerator.acquire(lockKey);
+      return await this.throttlingLocksGenerator.acquire(lockKey, operationTimestamp);
     }
     // Throttling disabled, return fake lock
     return Promise.resolve({
@@ -168,10 +169,10 @@ export class EndpointsThrottler<
   private doDequeue = async () => {
     const candidate = this.operations.shift();
     if (candidate) {
-      const lock = await this.acquireLock();
-      const executionMoment = moment();
-      const { url, operation, resolve, reject, options: operationOptions } =
+      const { timestamp: operationTimestamp, url, operation, resolve, reject, options: operationOptions } =
         candidate;
+      const lock = await this.acquireLock(operationTimestamp);
+      const executionMoment = moment();
       const canProceed = await this.canProceed(executionMoment);
       if (
         canProceed || !this.throttlingOptions.enabled
@@ -227,8 +228,8 @@ export class EndpointsThrottler<
           operationOptions.id,
         );
       }
+      this.operations.push(operation);
       setTimeout(() => {
-        this.operations.unshift(operation);
         this.doDequeue();
       }, nextTimeWindow.diff(previousAttemptMoment, "milliseconds"));
     } else {

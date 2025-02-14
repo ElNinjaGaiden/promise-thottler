@@ -1,5 +1,6 @@
 import {
   IThrottlingLock,
+  IThrottlingLockAcquire,
   IThrottlingLocksGenerator,
 } from "../promise.throttler.types.ts";
 import { v4 as uuidv4 } from "uuid";
@@ -21,14 +22,6 @@ const getInMemoryLock = (lockKey: string) => {
   return locks[lockKey];
 };
 
-interface Acquire {
-  id: string;
-  resolve: (
-    value: InMemoryThrottlingLock | PromiseLike<InMemoryThrottlingLock>,
-  ) => void;
-  lock: InMemoryThrottlingLock;
-}
-
 class InMemoryThrottlingLock implements IThrottlingLock {
   constructor(
     readonly inMemoryThrottlingLocksGenerator: InMemoryThrottlingLocksGenerator,
@@ -41,11 +34,11 @@ class InMemoryThrottlingLock implements IThrottlingLock {
 
 export class InMemoryThrottlingLocksGenerator
   implements IThrottlingLocksGenerator {
-  public acquires: Array<Acquire> = [];
-  public interval: number | null = null;
+  private acquires: Array<IThrottlingLockAcquire> = [];
+  private interval: number | null = null;
 
   constructor(readonly lockKey: string) {
-    this.interval = setInterval(this.checkForAcquires.bind(this), 200);
+    this.interval = setInterval(this.checkForAcquires.bind(this), 100);
   }
 
   get locked(): boolean {
@@ -61,14 +54,13 @@ export class InMemoryThrottlingLocksGenerator
     if (!this.locked) {
       const acquire = this.acquires.shift();
       if (acquire) {
-        this.acquires = this.acquires.filter((a) => a.id !== acquire.id);
         acquire.resolve(acquire.lock);
         this.locked = true;
       }
     }
   };
 
-  acquire = (lockKey: string): Promise<IThrottlingLock> => {
+  acquire = (lockKey: string, operationTimestamp: number): Promise<IThrottlingLock> => {
     const memoryThrottlerLocksGenerator = getInMemoryLocksGenerator(lockKey);
     const memoryThrottlerLock = new InMemoryThrottlingLock(
       memoryThrottlerLocksGenerator,
@@ -76,6 +68,7 @@ export class InMemoryThrottlingLocksGenerator
     return new Promise((resolve) => {
       memoryThrottlerLocksGenerator.acquires.push({
         id: uuidv4(),
+        timestamp: operationTimestamp,
         lock: memoryThrottlerLock,
         resolve,
       });

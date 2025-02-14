@@ -43,6 +43,7 @@ export interface ThrottlingOperationOptions<TError extends Error> {
 }
 
 export interface ThrottlingOperation<T, TError extends Error> {
+  timestamp: number,
   url: string;
   operation: (url: string) => Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
@@ -101,7 +102,16 @@ export interface IThrottlingLock {
 }
 
 export interface IThrottlingLocksGenerator {
-  acquire: (lockKey: string) => Promise<IThrottlingLock>;
+  acquire: (lockKey: string, operationTimestamp: number) => Promise<IThrottlingLock>;
+}
+
+export interface IThrottlingLockAcquire {
+  id: string;
+  timestamp: number,
+  resolve: (
+    value: IThrottlingLock | PromiseLike<IThrottlingLock>,
+  ) => void;
+  lock: IThrottlingLock,
 }
 
 export class ThrottlingRetriesExaustedError extends Error {}

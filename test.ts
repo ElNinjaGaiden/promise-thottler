@@ -106,6 +106,9 @@ const prepareOperations = (
               if (!status || status <= 499) return false; // data errors
               return true;
             },
+            // onOperationAssignedToThrottler: (url, urlSpecification, _urlRegexExpression, _operationId) => {
+            //   console.log(`Operation to be sent to ${url} assigned to throttler ${urlSpecification}`);
+            // },
           },
         ));
       }

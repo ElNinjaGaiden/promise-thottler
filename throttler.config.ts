@@ -109,7 +109,7 @@ export const atmsApisThrottlingConfigs: Record<
 
 export const scalabilityAwareThottlingConfig:
   ScalabilityAwareApiThrottlingConfig = {
-    autoScaleEnabled: false,
+    autoScaleEnabled: true,
     processors: 5,
   };
 
@@ -137,41 +137,41 @@ export const OPERATIONS_TO_TEST: Array<
       },
     ],
   },
-  {
-    atmsKey: ATMS_KEYS.TRIP_MASTER,
-    operations: [
-      {
-        url: "api/v1/endpoint1",
-        quantity: 25, // 125
-      },
-      {
-        url: "api/v1/endpoint2",
-        quantity: 25, // 125
-      },
-      {
-        url: "api/v1/webhook/gps/vehicle",
-        quantity: 20, // 50
-      },
-    ],
-  },
-  {
-    atmsKey: ATMS_KEYS.ROUTE_GENIE,
-    // vehicleCompanyId: 1,
-    operations: [
-      {
-        url: "api/v1/endpoint1",
-        quantity: 25, // 125
-      },
-      {
-        url: "api/v1/endpoint2",
-        quantity: 25, // 125
-      },
-      {
-        url: "api/v1/webhook/gps/vehicle",
-        quantity: 20, // 50
-      },
-    ],
-  },
+  // {
+  //   atmsKey: ATMS_KEYS.TRIP_MASTER,
+  //   operations: [
+  //     {
+  //       url: "api/v1/endpoint1",
+  //       quantity: 25, // 125
+  //     },
+  //     {
+  //       url: "api/v1/endpoint2",
+  //       quantity: 25, // 125
+  //     },
+  //     {
+  //       url: "api/v1/webhook/gps/vehicle",
+  //       quantity: 20, // 50
+  //     },
+  //   ],
+  // },
+  // {
+  //   atmsKey: ATMS_KEYS.ROUTE_GENIE,
+  //   // vehicleCompanyId: 1,
+  //   operations: [
+  //     {
+  //       url: "api/v1/endpoint1",
+  //       quantity: 25, // 125
+  //     },
+  //     {
+  //       url: "api/v1/endpoint2",
+  //       quantity: 25, // 125
+  //     },
+  //     {
+  //       url: "api/v1/webhook/gps/vehicle",
+  //       quantity: 20, // 50
+  //     },
+  //   ],
+  // },
   // {
   //   atmsKey: ATMS_KEYS.ROUTE_GENIE,
   //   vehicleCompanyId: 2,

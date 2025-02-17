@@ -26,11 +26,14 @@ export class RedisApiThrottler<
 
     this.endpointsThrottlers = this.sortedEndpointsThrottlingConfigs
       .map((endpointsThrottlingConfig) => {
+        const lockKey = throttlingKeysGenerator.getLockKey(
+          throttlingKeysGeneratorInput,
+        );
         return new EndpointsThrottler<KeysGeneratorInput>(
           endpointsThrottlingConfig,
           throttlingKeysGeneratorInput,
           throttlingKeysGenerator,
-          new RedisThrottlingLocksGenerator(),
+          new RedisThrottlingLocksGenerator(lockKey),
           new RedisListThrottlingQuotaTracker(),
         );
       });

@@ -40,6 +40,12 @@ export interface ThrottlingOperationOptions<TError extends Error> {
     error: TError,
     operationId?: string,
   ) => Promise<boolean> | boolean;
+  onOperationAssignedToThrottler?: (
+    url: string,
+    urlSpecification: string,
+    urlRegexExpression: string,
+    operationId?: string,
+  ) => Promise<void> | void;
 }
 
 export interface ThrottlingOperation<T, TError extends Error> {

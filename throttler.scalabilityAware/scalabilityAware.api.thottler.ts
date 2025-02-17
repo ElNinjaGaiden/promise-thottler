@@ -82,7 +82,7 @@ export class ScalabilityAwareApiThrottler<
     const { persistenceStrategy } = endpointsThrottlingConfig;
     const throttlingLocksGenerator: IThrottlingLocksGenerator =
       this.scalabilityAwareThottlingConfig.autoScaleEnabled
-        ? new RedisThrottlingLocksGenerator()
+        ? new RedisThrottlingLocksGenerator(lockKey)
         : new InMemoryThrottlingLocksGenerator(lockKey);
     const throttlingQuotaTracker: IThrottlingQuotaTracker =
       this.scalabilityAwareThottlingConfig.autoScaleEnabled

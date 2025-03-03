@@ -2,7 +2,6 @@ import { ThrottlingOperationTrack } from "../promise.throttler.types.ts";
 import { ThrottlingOperation } from "../promise.throttler.types.ts";
 import { IThrottlingQuotaTracker } from "../promise.throttler.types.ts";
 import moment from "moment";
-import { v4 as uuidv4 } from "uuid";
 
 const quotaTrackers: Record<
   string,
@@ -27,8 +26,20 @@ export class InMemoryListThrottlingQuotaTracker
     quotaTracker.operations.push({
       url: operation.url,
       timestamp: moment().toISOString(),
-      id: uuidv4(),
+      id: operation.id,
     });
+    return Promise.resolve();
+  };
+
+  substract = (
+    key: string,
+    // deno-lint-ignore no-explicit-any
+    operation: ThrottlingOperation<any, any>,
+  ): Promise<void> => {
+    const quotaTracker = getQuotaTracker(key);
+    quotaTracker.operations = quotaTracker.operations.filter((o) =>
+      o.id !== operation.id
+    );
     return Promise.resolve();
   };
 

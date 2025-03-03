@@ -60,7 +60,10 @@ export class InMemoryThrottlingLocksGenerator
     }
   };
 
-  acquire = (lockKey: string, operationTimestamp: number): Promise<IThrottlingLock> => {
+  acquire = (
+    lockKey: string,
+    operationTimestamp: number,
+  ): Promise<IThrottlingLock> => {
     const memoryThrottlerLocksGenerator = getInMemoryLocksGenerator(lockKey);
     const memoryThrottlerLock = new InMemoryThrottlingLock(
       memoryThrottlerLocksGenerator,

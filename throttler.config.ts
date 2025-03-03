@@ -27,7 +27,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerPeriod: 50,
+      operationsPerPeriod: 300,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -40,7 +40,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/webhook/gps/vehicle",
       urlRegexFlags: "i",
       matchingPrecedence: 1,
-      operationsPerPeriod: 50,
+      operationsPerPeriod: 100,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -55,7 +55,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerPeriod: 60,
+      operationsPerPeriod: 300,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -68,7 +68,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/webhook/gps/vehicle",
       urlRegexFlags: "i",
       matchingPrecedence: 1,
-      operationsPerPeriod: 50,
+      operationsPerPeriod: 100,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -83,7 +83,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/(\/[-a-z\d%_.~+]*)*",
       urlRegexFlags: "i",
       matchingPrecedence: 2,
-      operationsPerPeriod: 60,
+      operationsPerPeriod: 300,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -96,7 +96,7 @@ export const atmsApisThrottlingConfigs: Record<
       urlRegexExpression: "api/v1/webhook/gps/vehicle",
       urlRegexFlags: "i",
       matchingPrecedence: 1,
-      operationsPerPeriod: 50,
+      operationsPerPeriod: 100,
       unitOfTime: "minutes",
       periodsLength: 1,
       retries: 3,
@@ -125,75 +125,75 @@ export const OPERATIONS_TO_TEST: Array<
     operations: [
       {
         url: "api/v1/endpoint1",
-        quantity: 25, // 125
+        quantity: 100, // 125
       },
       {
         url: "api/v1/endpoint2",
-        quantity: 25, // 125
+        quantity: 100, // 125
       },
       {
         url: "api/v1/webhook/gps/vehicle",
-        quantity: 20, // 50
+        quantity: 100, // 50
       },
     ],
   },
-  // {
-  //   atmsKey: ATMS_KEYS.TRIP_MASTER,
-  //   operations: [
-  //     {
-  //       url: "api/v1/endpoint1",
-  //       quantity: 25, // 125
-  //     },
-  //     {
-  //       url: "api/v1/endpoint2",
-  //       quantity: 25, // 125
-  //     },
-  //     {
-  //       url: "api/v1/webhook/gps/vehicle",
-  //       quantity: 20, // 50
-  //     },
-  //   ],
-  // },
-  // {
-  //   atmsKey: ATMS_KEYS.ROUTE_GENIE,
-  //   // vehicleCompanyId: 1,
-  //   operations: [
-  //     {
-  //       url: "api/v1/endpoint1",
-  //       quantity: 25, // 125
-  //     },
-  //     {
-  //       url: "api/v1/endpoint2",
-  //       quantity: 25, // 125
-  //     },
-  //     {
-  //       url: "api/v1/webhook/gps/vehicle",
-  //       quantity: 20, // 50
-  //     },
-  //   ],
-  // },
-  // {
-  //   atmsKey: ATMS_KEYS.ROUTE_GENIE,
-  //   vehicleCompanyId: 2,
-  //   operations: [
-  //     {
-  //       url: "api/v1/endpoint1",
-  //       quantity: 25, // 125
-  //     },
-  //     {
-  //       url: "api/v1/endpoint2",
-  //       quantity: 25, // 125
-  //     },
-  //     {
-  //       url: "api/v1/webhook/gps/vehicle",
-  //       quantity: 20, // 50
-  //     },
-  //   ],
-  // },
+  {
+    atmsKey: ATMS_KEYS.TRIP_MASTER,
+    operations: [
+      {
+        url: "api/v1/endpoint1",
+        quantity: 100, // 125
+      },
+      {
+        url: "api/v1/endpoint2",
+        quantity: 100, // 125
+      },
+      {
+        url: "api/v1/webhook/gps/vehicle",
+        quantity: 100, // 50
+      },
+    ],
+  },
+  {
+    atmsKey: ATMS_KEYS.ROUTE_GENIE,
+    vehicleCompanyId: 1,
+    operations: [
+      {
+        url: "api/v1/endpoint1",
+        quantity: 100, // 125
+      },
+      {
+        url: "api/v1/endpoint2",
+        quantity: 100, // 125
+      },
+      {
+        url: "api/v1/webhook/gps/vehicle",
+        quantity: 100, // 50
+      },
+    ],
+  },
+  {
+    atmsKey: ATMS_KEYS.ROUTE_GENIE,
+    vehicleCompanyId: 2,
+    operations: [
+      {
+        url: "api/v1/endpoint1",
+        quantity: 100, // 125
+      },
+      {
+        url: "api/v1/endpoint2",
+        quantity: 100, // 125
+      },
+      {
+        url: "api/v1/webhook/gps/vehicle",
+        quantity: 100, // 50
+      },
+    ],
+  },
 ];
 
 const environment = "local";
-export const FAKE_OPERATION_DURATION_MILISECONDS = 500;
+export const FAKE_OPERATION_DURATION_MILISECONDS = 2000;
 export const WAIT_FOR_BRAND_NEW_MINUTE_TO_START = true;
 
 export class VehicleCompanyAtmsThrottlingKeysGenerator

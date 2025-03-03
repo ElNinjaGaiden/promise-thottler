@@ -18,10 +18,27 @@ export class RedisListThrottlingQuotaTracker
   ): Promise<void> => {
     const track: ThrottlingOperationTrack = {
       url: operation.url,
-      timestamp: moment().toISOString(),
-      id: uuidv4(),
+      timestamp: operation.executionTime || "no execution time provided",
+      id: operation.id,
     };
     const listLength = await redis.lpush(key, JSON.stringify(track));
+    if (listLength === 1) {
+      // Set the expiration if it is the first item added
+      await redis.expire(key, redisThrottlerQuotaTrackerMinutesTtl * 60);
+    }
+  };
+
+  substract = async (
+    key: string,
+    // deno-lint-ignore no-explicit-any
+    operation: ThrottlingOperation<any, any>,
+  ): Promise<void> => {
+    const track: ThrottlingOperationTrack = {
+      url: operation.url,
+      timestamp: operation.executionTime || "no execution time provided",
+      id: uuidv4(),
+    };
+    const listLength = await redis.lrem(key, 1, JSON.stringify(track));
     if (listLength === 1) {
       // Set the expiration if it is the first item added
       await redis.expire(key, redisThrottlerQuotaTrackerMinutesTtl * 60);

@@ -14,6 +14,7 @@ import { RedisThrottlingLocksGenerator } from "../throttler.redis/redis.throttle
 import { RedisListThrottlingQuotaTracker } from "../throttler.redis/redis.list.throttler.quota.tracker.ts";
 import { RedisCounterThrottlingQuotaTracker } from "../throttler.redis/redis.counter.throttler.quota.tracker.ts";
 import { InMemoryCounterThrottlingQuotaTracker } from "../throttler.memory/memory.counter.throttler.quota.tracker.ts";
+import { EndpointsThrottlerWithParallelism } from "../promise.throttler.with.parallelism.ts";
 
 interface IThrottlingMechanism {
   throttlingLocksGenerator: IThrottlingLocksGenerator;
@@ -62,7 +63,7 @@ export class ScalabilityAwareApiThrottler<
         );
         const { throttlingLocksGenerator, throttlingQuotaTracker } = this
           .getThrottlerMechanism(lockKey, endpointsThrottlingConfig);
-        return new EndpointsThrottler<KeysGeneratorInput>(
+        return new EndpointsThrottlerWithParallelism<KeysGeneratorInput>(
           {
             ...endpointsThrottlingConfig,
             operationsPerPeriod,

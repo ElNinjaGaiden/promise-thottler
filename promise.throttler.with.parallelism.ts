@@ -5,7 +5,7 @@ import {
 } from "./promise.throttler.types.ts";
 import moment from "moment";
 
-export class EndpointsThrottler<
+export class EndpointsThrottlerWithParallelism<
   KeysGeneratorInput extends IThrottlingKeysGeneratorInput,
 > extends EndpointsThrottlerBase<KeysGeneratorInput>
   implements IEndpointsThrottler {
@@ -28,15 +28,31 @@ export class EndpointsThrottler<
       ) {
         // Rate limit has not been executed, we can proceed
         try {
-          const returnValue = await operation(url);
+          // We assume the operation will be successful hence we consume the quota
           candidate.executionTime = executionMoment.toISOString();
           await this.throttlingQuotaTracker.add(
             this.getCounterKey(executionMoment),
             candidate,
           );
           await lock.release();
+          const returnValue = await operation(url);
           resolve(returnValue);
         } catch (error: unknown) {
+          try {
+            // Since the operation failed, we need to "return" the quota we assumed it would consume
+            // NOTE: we pass 0 as timestamp as a trick in order to prioritize this lock
+            const lock = await this.acquireLock(0);
+            await this.throttlingQuotaTracker.substract(
+              this.getCounterKey(executionMoment),
+              candidate,
+            );
+            await lock.release();
+            candidate.executionTime = undefined;
+            //
+          } catch (err) {
+            console.error("Error substracting failed operation", err);
+          }
+          // Rest of the error handling...
           if (operationOptions?.onOperationFailed) {
             operationOptions.onOperationFailed(error, url, operationOptions.id);
           }

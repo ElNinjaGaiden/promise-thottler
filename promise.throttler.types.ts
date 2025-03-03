@@ -49,7 +49,8 @@ export interface ThrottlingOperationOptions<TError extends Error> {
 }
 
 export interface ThrottlingOperation<T, TError extends Error> {
-  timestamp: number,
+  id: string;
+  timestamp: number;
   url: string;
   operation: (url: string) => Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
@@ -57,12 +58,13 @@ export interface ThrottlingOperation<T, TError extends Error> {
   reject: (reason?: any) => void;
   currentRetryAttempt: number;
   options?: ThrottlingOperationOptions<TError>;
+  executionTime?: string;
 }
 
 export interface ThrottlingOperationTrack {
   url: string;
   timestamp: string;
-  id?: string;
+  id: string;
 }
 
 export interface IEndpointsThrottler {
@@ -88,6 +90,11 @@ export interface IThrottlingQuotaTracker {
     // deno-lint-ignore no-explicit-any
     operation: ThrottlingOperation<any, any>,
   ) => Promise<void>;
+  substract: (
+    key: string,
+    // deno-lint-ignore no-explicit-any
+    operation: ThrottlingOperation<any, any>,
+  ) => Promise<void>;
   current: (
     key: string,
   ) => Promise<number>;
@@ -108,16 +115,19 @@ export interface IThrottlingLock {
 }
 
 export interface IThrottlingLocksGenerator {
-  acquire: (lockKey: string, operationTimestamp: number) => Promise<IThrottlingLock>;
+  acquire: (
+    lockKey: string,
+    operationTimestamp: number,
+  ) => Promise<IThrottlingLock>;
 }
 
 export interface IThrottlingLockAcquire {
   id: string;
-  timestamp: number,
+  timestamp: number;
   resolve: (
     value: IThrottlingLock | PromiseLike<IThrottlingLock>,
   ) => void;
-  lock: IThrottlingLock,
+  lock: IThrottlingLock;
 }
 
 export class ThrottlingRetriesExaustedError extends Error {}

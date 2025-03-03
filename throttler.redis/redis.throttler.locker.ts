@@ -43,7 +43,7 @@ class RedisThrottlingLock implements IThrottlingLock {
     readonly redisThrottlingLocksGenerator: RedisThrottlingLocksGenerator,
   ) {}
 
-  set wrappedLock (lock: IThrottlingLock) {
+  set wrappedLock(lock: IThrottlingLock) {
     this._wrappedLock = lock;
   }
 
@@ -59,7 +59,6 @@ class RedisThrottlingLock implements IThrottlingLock {
 
 export class RedisThrottlingLocksGenerator
   implements IThrottlingLocksGenerator {
-
   private acquires: Array<RedisAcquireWrapper> = [];
   private readonly interval: number | null = null;
 
@@ -85,15 +84,20 @@ export class RedisThrottlingLocksGenerator
         acquire.lock.wrappedLock = {
           release: async () => {
             await redLock.release();
-          }
+          },
         };
         acquire.resolve(acquire.lock);
       }
     }
   };
 
-  acquire = (lockKey: string, operationTimestamp: number): Promise<IThrottlingLock> => {
-    const redisThrottlerLocksGenerator = getRedisThrottlingLocksGenerator(lockKey);
+  acquire = (
+    lockKey: string,
+    operationTimestamp: number,
+  ): Promise<IThrottlingLock> => {
+    const redisThrottlerLocksGenerator = getRedisThrottlingLocksGenerator(
+      lockKey,
+    );
     const redisThrottlerLock = new RedisThrottlingLock(
       redisThrottlerLocksGenerator,
     );

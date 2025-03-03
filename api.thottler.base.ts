@@ -39,8 +39,14 @@ export abstract class ApiThrottlerBase<
       throw new Error(`Throttler not found for url: ${url}`);
     }
     if (options?.onOperationAssignedToThrottler) {
-      const { throttlingOptions: { urlSpecification, urlRegexExpression } } = throttler;
-      options.onOperationAssignedToThrottler(url, urlSpecification, urlRegexExpression, options?.id);
+      const { throttlingOptions: { urlSpecification, urlRegexExpression } } =
+        throttler;
+      options.onOperationAssignedToThrottler(
+        url,
+        urlSpecification,
+        urlRegexExpression,
+        options?.id,
+      );
     }
     return throttler.add<T, TError>(url, operation, options);
   };

@@ -20,6 +20,20 @@ export class RedisCounterThrottlingQuotaTracker
     );
   };
 
+  substract = async (
+    key: string,
+    // deno-lint-ignore no-explicit-any
+    _operation: ThrottlingOperation<any, any>,
+  ): Promise<void> => {
+    const currentValue = await redis.get(key);
+    await redis.set(
+      key,
+      currentValue ? parseInt(currentValue) - 1 : 0,
+      "EX",
+      redisThrottlerQuotaTrackerMinutesTtl * 60,
+    );
+  };
+
   current = async (
     key: string,
   ): Promise<number> => {

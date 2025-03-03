@@ -25,6 +25,16 @@ export class InMemoryCounterThrottlingQuotaTracker
     return Promise.resolve();
   };
 
+  substract = (
+    key: string,
+    // deno-lint-ignore no-explicit-any
+    _operation: ThrottlingOperation<any, any>,
+  ): Promise<void> => {
+    const quotaTracker = getQuotaTracker(key);
+    quotaTracker.current -= 1;
+    return Promise.resolve();
+  };
+
   current = (
     key: string,
   ): Promise<number> => {

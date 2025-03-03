@@ -17,7 +17,10 @@ export class RedisListThrottlingQuotaTracker
   ): Promise<void> => {
     const track: ThrottlingOperationTrack = {
       url: operation.url,
-      timestamp: operation.executionTime || "no execution time provided",
+      arrivedAt: operation.arrivedAt.toISOString(),
+      executedAt: operation.executedAt
+        ? operation.executedAt.toISOString()
+        : "no execution time provided",
       id: operation.id,
     };
     const listLength = await redis.lpush(key, JSON.stringify(track));
@@ -34,7 +37,10 @@ export class RedisListThrottlingQuotaTracker
   ): Promise<void> => {
     const track: ThrottlingOperationTrack = {
       url: operation.url,
-      timestamp: operation.executionTime || "no execution time provided",
+      arrivedAt: operation.arrivedAt.toISOString(),
+      executedAt: operation.executedAt
+        ? operation.executedAt.toISOString()
+        : "no execution time provided",
       id: uuidv4(),
     };
     const listLength = await redis.lrem(key, 1, JSON.stringify(track));

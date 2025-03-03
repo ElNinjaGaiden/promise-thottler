@@ -1,7 +1,6 @@
 import { ThrottlingOperationTrack } from "../promise.throttler.types.ts";
 import { ThrottlingOperation } from "../promise.throttler.types.ts";
 import { IThrottlingQuotaTracker } from "../promise.throttler.types.ts";
-import moment from "moment";
 
 const quotaTrackers: Record<
   string,
@@ -25,7 +24,10 @@ export class InMemoryListThrottlingQuotaTracker
     const quotaTracker = getQuotaTracker(key);
     quotaTracker.operations.push({
       url: operation.url,
-      timestamp: moment().toISOString(),
+      arrivedAt: operation.arrivedAt.toISOString(),
+      executedAt: operation.executedAt
+        ? operation.executedAt.toISOString()
+        : "no execution time provided",
       id: operation.id,
     });
     return Promise.resolve();

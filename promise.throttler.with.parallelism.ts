@@ -13,13 +13,14 @@ export class EndpointsThrottlerWithParallelism<
     const candidate = this.operations.shift();
     if (candidate) {
       const {
-        timestamp: operationTimestamp,
+        arrivedAt,
         url,
         operation,
         resolve,
         reject,
         options: operationOptions,
       } = candidate;
+      const operationTimestamp = arrivedAt.getTime();
       const lock = await this.acquireLock(operationTimestamp);
       const executionMoment = moment();
       const canProceed = await this.canProceed(executionMoment);
@@ -29,7 +30,7 @@ export class EndpointsThrottlerWithParallelism<
         // Rate limit has not been executed, we can proceed
         try {
           // We assume the operation will be successful hence we consume the quota
-          candidate.executionTime = executionMoment.toISOString();
+          candidate.executedAt = new Date();
           await this.throttlingQuotaTracker.add(
             this.getCounterKey(executionMoment),
             candidate,

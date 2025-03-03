@@ -130,7 +130,7 @@ export abstract class EndpointsThrottlerBase<
     const p = new Promise<T>((resolve, reject) => {
       this.operations.push({
         id: uuidv4(),
-        timestamp: new Date().getTime(),
+        arrivedAt: new Date(),
         url,
         operation,
         resolve,

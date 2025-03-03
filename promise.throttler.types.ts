@@ -50,7 +50,8 @@ export interface ThrottlingOperationOptions<TError extends Error> {
 
 export interface ThrottlingOperation<T, TError extends Error> {
   id: string;
-  timestamp: number;
+  arrivedAt: Date;
+  executedAt?: Date;
   url: string;
   operation: (url: string) => Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
@@ -58,12 +59,12 @@ export interface ThrottlingOperation<T, TError extends Error> {
   reject: (reason?: any) => void;
   currentRetryAttempt: number;
   options?: ThrottlingOperationOptions<TError>;
-  executionTime?: string;
 }
 
 export interface ThrottlingOperationTrack {
   url: string;
-  timestamp: string;
+  arrivedAt: string;
+  executedAt: string;
   id: string;
 }
 

@@ -1,5 +1,4 @@
 import { ApiThrottlerBase } from "../api.thottler.base.ts";
-import { EndpointsThrottler } from "../promise.throttler.ts";
 import {
   EndpointsThrottlingConfig,
   IThrottlingKeysGenerator,

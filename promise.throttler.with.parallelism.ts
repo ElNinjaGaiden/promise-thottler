@@ -48,7 +48,7 @@ export class EndpointsThrottlerWithParallelism<
               candidate,
             );
             await lock.release();
-            candidate.executionTime = undefined;
+            candidate.executedAt = undefined;
             //
           } catch (err) {
             console.error("Error substracting failed operation", err);

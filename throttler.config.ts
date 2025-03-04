@@ -193,7 +193,7 @@ export const OPERATIONS_TO_TEST: Array<
 ];
 
 const environment = "local";
-export const FAKE_OPERATION_DURATION_MILISECONDS = 2000;
+export const FAKE_OPERATION_DURATION_MILISECONDS = 4000;
 export const WAIT_FOR_BRAND_NEW_MINUTE_TO_START = true;
 
 export class VehicleCompanyAtmsThrottlingKeysGenerator

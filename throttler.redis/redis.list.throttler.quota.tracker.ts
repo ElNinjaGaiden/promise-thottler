@@ -23,7 +23,7 @@ export class RedisListThrottlingQuotaTracker
         : "no execution time provided",
       id: operation.id,
     };
-    const listLength = await redis.lpush(key, JSON.stringify(track));
+    const listLength = await redis.rpush(key, JSON.stringify(track));
     if (listLength === 1) {
       // Set the expiration if it is the first item added
       await redis.expire(key, redisThrottlerQuotaTrackerMinutesTtl * 60);
